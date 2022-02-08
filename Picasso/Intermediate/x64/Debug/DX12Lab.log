@@ -1,0 +1,29 @@
+﻿  D3DApp.cpp
+C:\Users\yivanli\Desktop\DirectX12Lab\DX12Lab\Source\FileHelper.h(1,1): warning C4819: The file contains a character that cannot be represented in the current code page (936). Save the file in Unicode format to prevent data loss
+C:\Users\yivanli\Desktop\DirectX12Lab\DX12Lab\Source\SkinMesh\Animation.h(2,13): warning C4081: expected 'newline'; found ';'
+  Main.cpp
+C:\Users\yivanli\Desktop\DirectX12Lab\DX12Lab\Source\FileHelper.h(1,1): warning C4819: The file contains a character that cannot be represented in the current code page (936). Save the file in Unicode format to prevent data loss
+C:\Users\yivanli\Desktop\DirectX12Lab\DX12Lab\Source\SkinMesh\Animation.h(2,13): warning C4081: expected 'newline'; found ';'
+  Renderer.cpp
+C:\Users\yivanli\Desktop\DirectX12Lab\DX12Lab\Source\FileHelper.h(1,1): warning C4819: The file contains a character that cannot be represented in the current code page (936). Save the file in Unicode format to prevent data loss
+C:\Users\yivanli\Desktop\DirectX12Lab\DX12Lab\Source\SkinMesh\Animation.h(2,13): warning C4081: expected 'newline'; found ';'
+C:\Users\yivanli\Desktop\DirectX12Lab\DX12Lab\Source\RenderTargetPool.h(17,32): warning C4267: 'return': conversion from 'size_t' to 'UINT', possible loss of data
+C:\Users\yivanli\Desktop\DirectX12Lab\DX12Lab\Source\RenderTargetPool.h(25,38): warning C4267: 'return': conversion from 'size_t' to 'UINT', possible loss of data
+C:\Users\yivanli\Desktop\DirectX12Lab\DX12Lab\Source\Renderer.cpp(140,132): warning C4305: 'argument': truncation from 'double' to 'float'
+C:\Users\yivanli\Desktop\DirectX12Lab\DX12Lab\Source\Renderer.cpp(141,126): warning C4305: 'argument': truncation from 'double' to 'float'
+C:\Users\yivanli\Desktop\DirectX12Lab\DX12Lab\Source\Renderer.cpp(418,86): warning C4305: 'argument': truncation from 'double' to 'float'
+C:\Users\yivanli\Desktop\DirectX12Lab\DX12Lab\Source\Renderer.cpp(431,93): warning C4838: conversion from 'int' to 'UINT' requires a narrowing conversion
+C:\Users\yivanli\Desktop\DirectX12Lab\DX12Lab\Source\Renderer.cpp(675,102): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
+C:\Users\yivanli\Desktop\DirectX12Lab\DX12Lab\Source\Renderer.cpp(675,81): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
+C:\Users\yivanli\Desktop\DirectX12Lab\DX12Lab\Source\Renderer.cpp(684,102): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
+C:\Users\yivanli\Desktop\DirectX12Lab\DX12Lab\Source\Renderer.cpp(684,81): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
+C:\Users\yivanli\Desktop\DirectX12Lab\DX12Lab\Source\Renderer.cpp(704,84): warning C4244: 'argument': conversion from 'double' to 'float', possible loss of data
+C:\Users\yivanli\Desktop\DirectX12Lab\DX12Lab\Source\Renderer.cpp(898,91): warning C4838: conversion from 'int' to 'UINT' requires a narrowing conversion
+C:\Users\yivanli\Desktop\DirectX12Lab\DX12Lab\Source\Renderer.cpp(1067,8): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
+C:\Users\yivanli\Desktop\DirectX12Lab\DX12Lab\Source\Renderer.cpp(1069,23): warning C4305: 'initializing': truncation from 'double' to 'float'
+C:\Users\yivanli\Desktop\DirectX12Lab\DX12Lab\Source\Renderer.cpp(1129,54): warning C4305: 'argument': truncation from 'double' to 'float'
+C:\Users\yivanli\Desktop\DirectX12Lab\DX12Lab\Source\Renderer.cpp(1130,51): warning C4305: 'argument': truncation from 'double' to 'float'
+C:\Users\yivanli\Desktop\DirectX12Lab\DX12Lab\Source\Renderer.cpp(1158,54): warning C4305: 'argument': truncation from 'double' to 'float'
+C:\Users\yivanli\Desktop\DirectX12Lab\DX12Lab\Source\Renderer.cpp(1159,51): warning C4305: 'argument': truncation from 'double' to 'float'
+  Generating Code...
+  DX12Lab.vcxproj -> C:\Users\yivanli\Desktop\DirectX12Lab\Build\x64\Debug\DX12Lab.exe
