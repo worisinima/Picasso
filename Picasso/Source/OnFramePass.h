@@ -34,7 +34,6 @@ public:
 	void DrawMaterialToRendertarget(
 		ID3D12GraphicsCommandList* mCommandList,
 		ID3D12CommandAllocator* mDirectCmdListAlloc,
-		RenderTarget* srcRT,
 		RenderTarget* destRT,
 		MaterialResource* mat,
 		const bool& bAlpha = false

@@ -35,26 +35,250 @@ BaseRenderer::BaseRenderer(const int& clientWidth, const int& clientHeight)
 {
 	mClientWidth = clientWidth;
 	mClientHeight = clientHeight;
+	mRenderTargetPool = std::make_unique<RenderTargetPool>();
 }
 BaseRenderer::~BaseRenderer()
 {
-	
+	mRenderTargetPool.release();
 }
+
+void BaseRenderer::CreateCommandObjects()
+{
+	//Create command queue
+	D3D12_COMMAND_QUEUE_DESC queueDesc = {};
+	queueDesc.Type = D3D12_COMMAND_LIST_TYPE_DIRECT;
+	queueDesc.Flags = D3D12_COMMAND_QUEUE_FLAG_NONE;
+	ThrowIfFailed(md3dDevice->CreateCommandQueue(&queueDesc, IID_PPV_ARGS(&mCommandQueue)));
+
+	//Create command alocator
+	ThrowIfFailed(md3dDevice->CreateCommandAllocator(
+		D3D12_COMMAND_LIST_TYPE_DIRECT,
+		IID_PPV_ARGS(mDirectCmdListAlloc.GetAddressOf())));
+
+	//Create command list
+	ThrowIfFailed(md3dDevice->CreateCommandList(
+		0,
+		D3D12_COMMAND_LIST_TYPE_DIRECT,
+		mDirectCmdListAlloc.Get(), // Associated command allocator
+		nullptr,                   // Initial PipelineStateObject
+		IID_PPV_ARGS(mCommandList.GetAddressOf())));
+
+	// Start off in a closed state.  This is because the first time we refer 
+	// to the command list we will Reset it, and it needs to be closed before
+	// calling Reset.
+	mCommandList->Close();
+}
+
+void BaseRenderer::CreateSwapChain()
+{
+	// Release the previous SwapChain we will be recreating.
+	mSwapChain.Reset();
+
+	DXGI_SWAP_CHAIN_DESC sd;
+	sd.BufferDesc.Width = mClientWidth;
+	sd.BufferDesc.Height = mClientHeight;
+	sd.BufferDesc.RefreshRate.Numerator = 60;//刷新率
+	sd.BufferDesc.RefreshRate.Denominator = 1;
+	sd.BufferDesc.Format = mBackBufferFormat;
+	sd.BufferDesc.ScanlineOrdering = DXGI_MODE_SCANLINE_ORDER_UNSPECIFIED;
+	sd.BufferDesc.Scaling = DXGI_MODE_SCALING_UNSPECIFIED;
+	sd.SampleDesc.Count = m4xMsaaState ? 4 : 1;
+	sd.SampleDesc.Quality = m4xMsaaState ? DXGI_STANDARD_MULTISAMPLE_QUALITY_PATTERN : 0;
+	sd.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
+	sd.BufferCount = SwapChainBufferCount;
+	sd.OutputWindow = mhMainWnd;//和窗口关联
+	sd.Windowed = true;
+	sd.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
+	sd.Flags = DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
+
+	// Note: Swap chain uses queue to perform flush.
+	ThrowIfFailed(mdxgiFactory->CreateSwapChain(
+		mCommandQueue.Get(),
+		&sd,
+		mSwapChain.GetAddressOf()));
+}
+
+void BaseRenderer::CreateRtvAndDsvDescriptorHeaps()
+{
+	//存放Render TargetView
+	D3D12_DESCRIPTOR_HEAP_DESC rtvHeapDesc;
+	rtvHeapDesc.NumDescriptors = SwapChainBufferCount + mRenderTargetPool->GetRenderTargetPoolSize();
+	rtvHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_RTV;
+	rtvHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
+	rtvHeapDesc.NodeMask = 0;
+	ThrowIfFailed(md3dDevice->CreateDescriptorHeap(&rtvHeapDesc, IID_PPV_ARGS(mRtvHeap.GetAddressOf())));
+
+	//存放渲染目标的ShaderResourceView
+	D3D12_DESCRIPTOR_HEAP_DESC cbvHeapDesc;
+	cbvHeapDesc.NumDescriptors = SwapChainBufferCount + mRenderTargetPool->GetRenderTargetPoolSize();
+	cbvHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
+	cbvHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
+	cbvHeapDesc.NodeMask = 0;
+	ThrowIfFailed(md3dDevice->CreateDescriptorHeap(&cbvHeapDesc, IID_PPV_ARGS(&mSRVHeap)));
+
+	//存放UI的ShaderResourceView
+	//Create SrvHeap for MIGUI
+	D3D12_DESCRIPTOR_HEAP_DESC desc = {};
+	desc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
+	desc.NumDescriptors = SwapChainBufferCount;
+	desc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
+	ThrowIfFailed(md3dDevice->CreateDescriptorHeap(&desc, IID_PPV_ARGS(mMiGUISrvHeap.GetAddressOf())));
+
+	//存放深度的DepthShaderView
+	D3D12_DESCRIPTOR_HEAP_DESC dsvHeapDesc;
+	dsvHeapDesc.NumDescriptors = mDepthStencilBufferCount + mRenderTargetPool->GetDepthRenderTargetPoolSize();
+	dsvHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_DSV;
+	dsvHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
+	dsvHeapDesc.NodeMask = 0;
+	ThrowIfFailed(md3dDevice->CreateDescriptorHeap(&dsvHeapDesc, IID_PPV_ARGS(mDsvHeap.GetAddressOf())));
+}
+
+void BaseRenderer::FlushCommandQueue()
+{
+	// Advance the fence value to mark commands up to this fence point.
+	mCurrentFence++;
+
+	// Add an instruction to the command queue to set a new fence point.  Because we 
+	// are on the GPU TimeLine, the new fence point won't be set until the GPU finishes
+	// processing all the commands prior to this Signal().
+	ThrowIfFailed(mCommandQueue->Signal(mFence.Get(), mCurrentFence));
+
+	// Wait until the GPU has completed commands up to this fence point.
+	if (mFence->GetCompletedValue() < mCurrentFence)
+	{
+		HANDLE eventHandle = CreateEventEx(nullptr, nullptr, false, EVENT_ALL_ACCESS);
+
+		// Fire event when GPU hits current fence.  
+		ThrowIfFailed(mFence->SetEventOnCompletion(mCurrentFence, eventHandle));
+
+		// Wait until the GPU hits current fence event is fired.
+		WaitForSingleObject(eventHandle, INFINITE);
+		CloseHandle(eventHandle);
+	}
+}
+
+void BaseRenderer::LogAdapters()
+{
+	UINT i = 0;
+	IDXGIAdapter* adapter = nullptr;
+	std::vector<IDXGIAdapter*> adapterList;
+	while (mdxgiFactory->EnumAdapters(i, &adapter) != DXGI_ERROR_NOT_FOUND)
+	{
+		DXGI_ADAPTER_DESC desc;
+		adapter->GetDesc(&desc);
+
+		std::wstring text = L"***Adapter: ";
+		text += desc.Description;
+		text += L"\n";
+
+		OutputDebugString(text.c_str());
+
+		adapterList.push_back(adapter);
+
+		++i;
+	}
+
+	for (size_t i = 0; i < adapterList.size(); ++i)
+	{
+		LogAdapterOutputs(adapterList[i]);
+		ReleaseCom(adapterList[i]);
+	}
+}
+
+void BaseRenderer::LogAdapterOutputs(IDXGIAdapter* adapter)
+{
+	UINT i = 0;
+	IDXGIOutput* output = nullptr;
+	while (adapter->EnumOutputs(i, &output) != DXGI_ERROR_NOT_FOUND)
+	{
+		DXGI_OUTPUT_DESC desc;
+		output->GetDesc(&desc);
+
+		std::wstring text = L"***Output: ";
+		text += desc.DeviceName;
+		text += L"\n";
+		OutputDebugString(text.c_str());
+
+		LogOutputDisplayModes(output, mBackBufferFormat);
+
+		ReleaseCom(output);
+
+		++i;
+	}
+}
+
+void BaseRenderer::LogOutputDisplayModes(IDXGIOutput* output, DXGI_FORMAT format)
+{
+	UINT count = 0;
+	UINT flags = 0;
+
+	// Call with nullptr to get list count.
+	output->GetDisplayModeList(format, flags, &count, nullptr);
+
+	std::vector<DXGI_MODE_DESC> modeList(count);
+	output->GetDisplayModeList(format, flags, &count, &modeList[0]);
+
+	for (auto& x : modeList)
+	{
+		UINT n = x.RefreshRate.Numerator;
+		UINT d = x.RefreshRate.Denominator;
+		std::wstring text =
+			L"Width = " + std::to_wstring(x.Width) + L" " +
+			L"Height = " + std::to_wstring(x.Height) + L" " +
+			L"Refresh = " + std::to_wstring(n) + L"/" + std::to_wstring(d) +
+			L"\n";
+
+		::OutputDebugString(text.c_str());
+	}
+}
+float BaseRenderer::AspectRatio() const
+{
+	return static_cast<float>(mClientWidth) / mClientHeight;
+}
+
+ID3D12Resource* BaseRenderer::CurrentBackBuffer()const
+{
+	return mSwapChainBuffer[mCurrBackBuffer].Get();
+}
+
+D3D12_CPU_DESCRIPTOR_HANDLE BaseRenderer::CurrentBackBufferView()const
+{
+	return CD3DX12_CPU_DESCRIPTOR_HANDLE(
+		mRtvHeap->GetCPUDescriptorHandleForHeapStart(),
+		mCurrBackBuffer,
+		mRtvDescriptorSize);
+}
+
+D3D12_CPU_DESCRIPTOR_HANDLE BaseRenderer::DepthStencilView()const
+{
+	return mDsvHeap->GetCPUDescriptorHandleForHeapStart();
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 Renderer::Renderer(const int& clientWidth, const int& clientHeight)
 	: BaseRenderer(clientWidth, clientHeight)
 {
-	mClientWidth = clientWidth;
-	mClientHeight = clientHeight;
-
+	
 	oneFramePass = new OneFramePass();
 	mDebugPass = new OneFramePass();
 	mdebugArrowPass = new DebugArrowPass();
 	mIBLBRDFPass = new IBLBRDF();
 	mShadowMapPass = std::make_unique<ShadowMapPass>();
-
-	mRenderTargetPool = std::make_unique<RenderTargetPool>();
 
 }
 
@@ -67,8 +291,6 @@ Renderer::~Renderer()
 	ReleaseRenderPass(mDebugPass)
 	ReleaseRenderPass(mdebugArrowPass)
 	ReleaseRenderPass(mIBLBRDFPass)
-
-	mRenderTargetPool.release();
 }
 
 bool Renderer::InitRenderer(class D3DApp* app)
@@ -192,172 +414,6 @@ void Renderer::BuildLightData()
 	mSimpleLight->mLightData[1].mStrenth = 3.1415927f / 4.0f;
 	mSimpleLight->mLightData[1].mLightPos = Vector3(10, 10, 10);
 	mSimpleLight->mLightData[1].mLightRadius = 100.0f;
-}
-
-void Renderer::CreateCommandObjects()
-{
-	//Create command queue
-	D3D12_COMMAND_QUEUE_DESC queueDesc = {};
-	queueDesc.Type = D3D12_COMMAND_LIST_TYPE_DIRECT;
-	queueDesc.Flags = D3D12_COMMAND_QUEUE_FLAG_NONE;
-	ThrowIfFailed(md3dDevice->CreateCommandQueue(&queueDesc, IID_PPV_ARGS(&mCommandQueue)));
-
-	//Create command alocator
-	ThrowIfFailed(md3dDevice->CreateCommandAllocator(
-		D3D12_COMMAND_LIST_TYPE_DIRECT,
-		IID_PPV_ARGS(mDirectCmdListAlloc.GetAddressOf())));
-
-	//Create command list
-	ThrowIfFailed(md3dDevice->CreateCommandList(
-		0,
-		D3D12_COMMAND_LIST_TYPE_DIRECT,
-		mDirectCmdListAlloc.Get(), // Associated command allocator
-		nullptr,                   // Initial PipelineStateObject
-		IID_PPV_ARGS(mCommandList.GetAddressOf())));
-
-	// Start off in a closed state.  This is because the first time we refer 
-	// to the command list we will Reset it, and it needs to be closed before
-	// calling Reset.
-	mCommandList->Close();
-}
-
-void Renderer::CreateSwapChain()
-{
-	// Release the previous swapchain we will be recreating.
-	mSwapChain.Reset();
-
-	DXGI_SWAP_CHAIN_DESC sd;
-	sd.BufferDesc.Width = mClientWidth;
-	sd.BufferDesc.Height = mClientHeight;
-	sd.BufferDesc.RefreshRate.Numerator = 60;//刷新率
-	sd.BufferDesc.RefreshRate.Denominator = 1;
-	sd.BufferDesc.Format = mBackBufferFormat;
-	sd.BufferDesc.ScanlineOrdering = DXGI_MODE_SCANLINE_ORDER_UNSPECIFIED;
-	sd.BufferDesc.Scaling = DXGI_MODE_SCALING_UNSPECIFIED;
-	sd.SampleDesc.Count = m4xMsaaState ? 4 : 1;
-	sd.SampleDesc.Quality = m4xMsaaState ? DXGI_STANDARD_MULTISAMPLE_QUALITY_PATTERN : 0;
-	sd.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
-	sd.BufferCount = SwapChainBufferCount;
-	sd.OutputWindow = mhMainWnd;//和窗口关联
-	sd.Windowed = true;
-	sd.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
-	sd.Flags = DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
-
-	// Note: Swap chain uses queue to perform flush.
-	ThrowIfFailed(mdxgiFactory->CreateSwapChain(
-		mCommandQueue.Get(),
-		&sd,
-		mSwapChain.GetAddressOf()));
-}
-
-void Renderer::CreateRtvAndDsvDescriptorHeaps()
-{
-	//存放Render TargetView
-	D3D12_DESCRIPTOR_HEAP_DESC rtvHeapDesc;
-	rtvHeapDesc.NumDescriptors = SwapChainBufferCount + mRenderTargetPool->GetRenderTargetPoolSize();
-	rtvHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_RTV;
-	rtvHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
-	rtvHeapDesc.NodeMask = 0;
-	ThrowIfFailed(md3dDevice->CreateDescriptorHeap(&rtvHeapDesc, IID_PPV_ARGS(mRtvHeap.GetAddressOf())));
-
-	//存放渲染目标的ShaderResourceView
-	D3D12_DESCRIPTOR_HEAP_DESC cbvHeapDesc;
-	cbvHeapDesc.NumDescriptors = SwapChainBufferCount + mRenderTargetPool->GetRenderTargetPoolSize();
-	cbvHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
-	cbvHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
-	cbvHeapDesc.NodeMask = 0;
-	ThrowIfFailed(md3dDevice->CreateDescriptorHeap(&cbvHeapDesc, IID_PPV_ARGS(&mSRVHeap)));
-
-	//存放UI的ShaderResourceView
-	//Create SrvHeap for MIGUI
-	D3D12_DESCRIPTOR_HEAP_DESC desc = {};
-	desc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
-	desc.NumDescriptors = SwapChainBufferCount;
-	desc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
-	ThrowIfFailed(md3dDevice->CreateDescriptorHeap(&desc, IID_PPV_ARGS(mMiGUISrvHeap.GetAddressOf())));
-
-	//存放深度的DepthShaderView
-	D3D12_DESCRIPTOR_HEAP_DESC dsvHeapDesc;
-	dsvHeapDesc.NumDescriptors = mDepthStencilBufferCount + mRenderTargetPool->GetDepthRenderTargetPoolSize();
-	dsvHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_DSV;
-	dsvHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
-	dsvHeapDesc.NodeMask = 0;
-	ThrowIfFailed(md3dDevice->CreateDescriptorHeap(&dsvHeapDesc, IID_PPV_ARGS(mDsvHeap.GetAddressOf())));
-}
-
-void Renderer::LogAdapters()
-{
-	UINT i = 0;
-	IDXGIAdapter* adapter = nullptr;
-	std::vector<IDXGIAdapter*> adapterList;
-	while (mdxgiFactory->EnumAdapters(i, &adapter) != DXGI_ERROR_NOT_FOUND)
-	{
-		DXGI_ADAPTER_DESC desc;
-		adapter->GetDesc(&desc);
-
-		std::wstring text = L"***Adapter: ";
-		text += desc.Description;
-		text += L"\n";
-
-		OutputDebugString(text.c_str());
-
-		adapterList.push_back(adapter);
-
-		++i;
-	}
-
-	for (size_t i = 0; i < adapterList.size(); ++i)
-	{
-		LogAdapterOutputs(adapterList[i]);
-		ReleaseCom(adapterList[i]);
-	}
-}
-
-void Renderer::LogAdapterOutputs(IDXGIAdapter* adapter)
-{
-	UINT i = 0;
-	IDXGIOutput* output = nullptr;
-	while (adapter->EnumOutputs(i, &output) != DXGI_ERROR_NOT_FOUND)
-	{
-		DXGI_OUTPUT_DESC desc;
-		output->GetDesc(&desc);
-
-		std::wstring text = L"***Output: ";
-		text += desc.DeviceName;
-		text += L"\n";
-		OutputDebugString(text.c_str());
-
-		LogOutputDisplayModes(output, mBackBufferFormat);
-
-		ReleaseCom(output);
-
-		++i;
-	}
-}
-
-void Renderer::LogOutputDisplayModes(IDXGIOutput* output, DXGI_FORMAT format)
-{
-	UINT count = 0;
-	UINT flags = 0;
-
-	// Call with nullptr to get list count.
-	output->GetDisplayModeList(format, flags, &count, nullptr);
-
-	std::vector<DXGI_MODE_DESC> modeList(count);
-	output->GetDisplayModeList(format, flags, &count, &modeList[0]);
-
-	for (auto& x : modeList)
-	{
-		UINT n = x.RefreshRate.Numerator;
-		UINT d = x.RefreshRate.Denominator;
-		std::wstring text =
-			L"Width = " + std::to_wstring(x.Width) + L" " +
-			L"Height = " + std::to_wstring(x.Height) + L" " +
-			L"Refresh = " + std::to_wstring(n) + L"/" + std::to_wstring(d) +
-			L"\n";
-
-		::OutputDebugString(text.c_str());
-	}
 }
 
 void Renderer::OnResize()
@@ -498,53 +554,6 @@ void Renderer::OnResize()
 	
 }
 
-float Renderer::AspectRatio() const
-{
-	return static_cast<float>(mClientWidth) / mClientHeight;
-}
-
-ID3D12Resource* Renderer::CurrentBackBuffer()const
-{
-	return mSwapChainBuffer[mCurrBackBuffer].Get();
-}
-
-D3D12_CPU_DESCRIPTOR_HANDLE Renderer::CurrentBackBufferView()const
-{
-	return CD3DX12_CPU_DESCRIPTOR_HANDLE(
-		mRtvHeap->GetCPUDescriptorHandleForHeapStart(),
-		mCurrBackBuffer,
-		mRtvDescriptorSize);
-}
-
-D3D12_CPU_DESCRIPTOR_HANDLE Renderer::DepthStencilView()const
-{
-	return mDsvHeap->GetCPUDescriptorHandleForHeapStart();
-}
-
-void Renderer::FlushCommandQueue()
-{
-	// Advance the fence value to mark commands up to this fence point.
-	mCurrentFence++;
-
-	// Add an instruction to the command queue to set a new fence point.  Because we 
-	// are on the GPU timeline, the new fence point won't be set until the GPU finishes
-	// processing all the commands prior to this Signal().
-	ThrowIfFailed(mCommandQueue->Signal(mFence.Get(), mCurrentFence));
-
-	// Wait until the GPU has completed commands up to this fence point.
-	if (mFence->GetCompletedValue() < mCurrentFence)
-	{
-		HANDLE eventHandle = CreateEventEx(nullptr, nullptr, false, EVENT_ALL_ACCESS);
-
-		// Fire event when GPU hits current fence.  
-		ThrowIfFailed(mFence->SetEventOnCompletion(mCurrentFence, eventHandle));
-
-		// Wait until the GPU hits current fence event is fired.
-		WaitForSingleObject(eventHandle, INFINITE);
-		CloseHandle(eventHandle);
-	}
-}
-
 void Renderer::DrawRenderItems(ID3D12GraphicsCommandList* mCommandList, const std::vector<RenderItem*>& ritems, D3D12_GPU_VIRTUAL_ADDRESS& passCBAddress)
 {
 	UINT objCBByteSize = d3dUtil::CalcConstantBufferByteSize(sizeof(ObjectConstants));
@@ -616,8 +625,7 @@ void Renderer::Draw(const GameTimer& gt)
 
 	ID3D12DescriptorHeap* descriptorHeaps[] = { mSRVHeap.Get() };
 	mCommandList->SetDescriptorHeaps(_countof(descriptorHeaps), descriptorHeaps);
-
-
+	
 	UINT passCBByteSize = d3dUtil::CalcConstantBufferByteSize(sizeof(PassConstants));
 	auto passCB = mCurrFrameResource->PassCB->Resource();
 
@@ -640,11 +648,13 @@ void Renderer::Draw(const GameTimer& gt)
 	mCommandList->ClearRenderTargetView(mHDRRendertarget->GetRTVDescriptorHandle(), mHDRRendertarget->GetClearData(), 0, nullptr);
 	mCommandList->ClearDepthStencilView(DepthStencilView(), D3D12_CLEAR_FLAG_DEPTH | D3D12_CLEAR_FLAG_STENCIL, 1.0f, 0, 0, nullptr);
 
+	//渲染BasePass
 	D3D12_GPU_VIRTUAL_ADDRESS standardPassConstantViewAdress = passCB->GetGPUVirtualAddress();
 	DrawRenderItems(mCommandList.Get(), mRitemLayer[(int)EPassType::Opaque], standardPassConstantViewAdress);
 
 	//mCommandList->SetPipelineState(mPSOs["transparent"].Get());
 	//DrawRenderItems(mCommandList.Get(), mRitemLayer[(int)EPassType::Transparent], false, standardPassConstantViewAdress);
+	
 	// Indicate a state transition on the resource usage.
 	mHDRRendertarget->EndRender(mCommandList.Get());
 
@@ -676,16 +686,14 @@ void Renderer::Draw(const GameTimer& gt)
 	mDebugPass->DrawMaterialToRendertarget(
 		mCommandList.Get(),
 		mDirectCmdListAlloc.Get(),
-		mIBLBRDFTarget,//mIBLBRDFTarget
 		CurrentBackTarget,
 		mDebugPassMaterial
 	);
 
-	mDebugPass->SetWindowScaleAndCenter(Vector2(0.25, 0.25f), Vector2(mClientWidth - 300, mClientHeight - 600));
+	mDebugPass->SetWindowScaleAndCenter(Vector2(0.25, 0.25f), Vector2(mClientWidth - 600, mClientHeight - 300));
 	mDebugPass->DrawMaterialToRendertarget(
 		mCommandList.Get(),
 		mDirectCmdListAlloc.Get(),
-		mIBLBRDFTarget,//mIBLBRDFTarget
 		CurrentBackTarget,
 		mDebugIBLPassMaterial
 	);
@@ -700,18 +708,17 @@ void Renderer::Draw(const GameTimer& gt)
 		mDirectCmdListAlloc.Get(),
 		mDebugArrowRendertarget
 	);
-	//Draw Arrow texture to backbuffer
+	//Draw Arrow texture to BackBuffer
 	mDebugPass->SetWindowScaleAndCenter(Vector2(0.25, 0.25), Vector2(0, mClientHeight - 512 * 0.25));
 	mDebugPass->DrawMaterialToRendertarget(
 		mCommandList.Get(),
 		mDirectCmdListAlloc.Get(),
-		mDebugArrowRendertarget,
 		CurrentBackTarget,
 		mArrowPassMaterial,
 		true
 	);
 #endif
-
+	
 	//Begin Render UI
 	//mCommandList->OMSetRenderTargets(1, &CurrentBackBufferView(), true, &DepthStencilView());
 	CurrentBackTarget->BeginRender(mCommandList.Get());

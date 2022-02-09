@@ -58,8 +58,65 @@ public:
 	BaseRenderer& operator=(const BaseRenderer& rhs) = delete;
 	~BaseRenderer();
 	
+	virtual bool InitRenderer(class D3DApp* app){ return false;};
 	virtual void Draw(const GameTimer& gt){}
 	virtual void Update(const GameTimer& gt){}
+	virtual void CreateCommandObjects();
+	virtual void CreateSwapChain();
+	virtual void OnResize(){}
+
+	// Derived class should set these in derived constructor to customize starting values.
+	D3D_DRIVER_TYPE md3dDriverType = D3D_DRIVER_TYPE_HARDWARE;
+	DXGI_FORMAT mBackBufferFormat = DXGI_FORMAT_R8G8B8A8_UNORM;
+	DXGI_FORMAT mDepthStencilFormat = DXGI_FORMAT_D24_UNORM_S8_UINT;
+
+	Microsoft::WRL::ComPtr<IDXGIFactory4> mdxgiFactory;
+	Microsoft::WRL::ComPtr<IDXGISwapChain> mSwapChain;
+	Microsoft::WRL::ComPtr<ID3D12Device> md3dDevice;
+
+	Microsoft::WRL::ComPtr<ID3D12Fence> mFence;
+	UINT64 mCurrentFence = 0;
+
+	Microsoft::WRL::ComPtr<ID3D12CommandQueue> mCommandQueue;
+	Microsoft::WRL::ComPtr<ID3D12CommandAllocator> mDirectCmdListAlloc;
+	Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList> mCommandList;
+
+	static const int SwapChainBufferCount = 2;
+	static const int mDepthStencilBufferCount = 1;
+	int mCurrBackBuffer = 0;
+	Microsoft::WRL::ComPtr<ID3D12Resource> mSwapChainBuffer[SwapChainBufferCount];
+	Microsoft::WRL::ComPtr<ID3D12Resource> mDepthStencilBuffer;
+
+	Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> mRtvHeap;
+	Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> mDsvHeap;
+	Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> mSRVHeap;
+	Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> mMiGUISrvHeap;
+	virtual void CreateRtvAndDsvDescriptorHeaps();
+
+	std::unique_ptr<RenderTargetPool> mRenderTargetPool;
+	RenderTarget* mBackBufferRendertarget[SwapChainBufferCount];
+
+	HWND	mhMainWnd;	// main window handle
+	bool	m4xMsaaState = false;	// 4X MSAA enabled
+	UINT	m4xMsaaQuality = 0;		// quality level of 4X MSAA
+
+	D3D12_VIEWPORT mScreenViewport;
+	D3D12_RECT mScissorRect;
+
+	UINT mRtvDescriptorSize = 0;
+	UINT mDsvDescriptorSize = 0;
+	UINT mCbvSrvUavDescriptorSize = 0;
+
+	float AspectRatio() const;
+	void SetRendererWindowSize(const int& width, const int& height) { mClientWidth = width; mClientHeight = height; }
+	void FlushCommandQueue();
+	D3D12_CPU_DESCRIPTOR_HANDLE DepthStencilView()const;
+	D3D12_CPU_DESCRIPTOR_HANDLE CurrentBackBufferView()const;
+	ID3D12Resource* CurrentBackBuffer()const;
+
+	void LogAdapters();
+	void LogAdapterOutputs(IDXGIAdapter* adapter);
+	void LogOutputDisplayModes(IDXGIOutput* output, DXGI_FORMAT format);
 
 protected:
 	int mClientWidth;
@@ -75,28 +132,11 @@ public:
 	Renderer& operator=(const Renderer& rhs) = delete;
 	~Renderer();
 
-	bool InitRenderer(class D3DApp* app);
-	void CreateCommandObjects();
-	void CreateSwapChain();
-	void CreateRtvAndDsvDescriptorHeaps();
-
+	virtual bool InitRenderer(class D3DApp* app) override;
 	virtual void Draw(const GameTimer& gt) override;
 	virtual void Update(const GameTimer& gt) override;
-
-	void OnResize();
-	void SetRendererWindowSize(const int& width, const int& height){ mClientWidth = width; mClientHeight = height;}
-
-	void FlushCommandQueue();
-
-	void LogAdapters();
-	void LogAdapterOutputs(IDXGIAdapter* adapter);
-	void LogOutputDisplayModes(IDXGIOutput* output, DXGI_FORMAT format);
-
-	float AspectRatio() const;
-	D3D12_CPU_DESCRIPTOR_HANDLE DepthStencilView()const;
-	D3D12_CPU_DESCRIPTOR_HANDLE CurrentBackBufferView()const;
-	ID3D12Resource* CurrentBackBuffer()const;
-
+	virtual void OnResize() override;
+	
 	//RenderPass
 	void UpdateCamera();
 	void UpdateObjectCBs(const GameTimer& gt);
@@ -116,60 +156,21 @@ public:
 	IBLBRDF* mIBLBRDFPass;
 	std::unique_ptr<ShadowMapPass> mShadowMapPass;
 
+	std::vector<MaterialResource> mMaterials;
 	MaterialResource* mDebugPassMaterial;
 	MaterialResource* mDebugIBLPassMaterial;
 	MaterialResource* mArrowPassMaterial;
-	RenderTarget* mShadowMap;
-
-	HWND	mhMainWnd;	// main window handle
-	bool	m4xMsaaState = false;	// 4X MSAA enabled
-	UINT	m4xMsaaQuality = 0;		// quality level of 4X MSAA
-
+	
 	void BuildLightData();
 	Light* mSimpleLight = nullptr;
 
-	Microsoft::WRL::ComPtr<IDXGIFactory4> mdxgiFactory;
-	Microsoft::WRL::ComPtr<IDXGISwapChain> mSwapChain;
-	Microsoft::WRL::ComPtr<ID3D12Device> md3dDevice;
-
-	Microsoft::WRL::ComPtr<ID3D12Fence> mFence;
-	UINT64 mCurrentFence = 0;
-
-	Microsoft::WRL::ComPtr<ID3D12CommandQueue> mCommandQueue;
-	Microsoft::WRL::ComPtr<ID3D12CommandAllocator> mDirectCmdListAlloc;
-	Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList> mCommandList;
-
-	static const int SwapChainBufferCount = 2;
-	static const int mDepthStencilBufferCount = 1;
-	int mCurrBackBuffer = 0;
-	Microsoft::WRL::ComPtr<ID3D12Resource> mSwapChainBuffer[SwapChainBufferCount];
-	Microsoft::WRL::ComPtr<ID3D12Resource> mDepthStencilBuffer;
-
+	RenderTarget* mShadowMap;
 	RenderTarget* mHDRRendertarget;
 	RenderTarget* mDebugArrowRendertarget;
 	RenderTarget* mIBLBRDFTarget;
 	//we just draw once IBLBRDF
 	bool bDrawIBLToggle = true;
-	RenderTarget* mBackBufferRendertarget[SwapChainBufferCount];
-	std::unique_ptr<RenderTargetPool> mRenderTargetPool;
 	
-	Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> mRtvHeap;
-	Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> mDsvHeap;
-	Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> mSRVHeap;
-	Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> mMiGUISrvHeap;
-
-	D3D12_VIEWPORT mScreenViewport;
-	D3D12_RECT mScissorRect;
-
-	UINT mRtvDescriptorSize = 0;
-	UINT mDsvDescriptorSize = 0;
-	UINT mCbvSrvUavDescriptorSize = 0;
-
-	// Derived class should set these in derived constructor to customize starting values.
-	D3D_DRIVER_TYPE md3dDriverType = D3D_DRIVER_TYPE_HARDWARE;
-	DXGI_FORMAT mBackBufferFormat = DXGI_FORMAT_R8G8B8A8_UNORM;
-	DXGI_FORMAT mDepthStencilFormat = DXGI_FORMAT_D24_UNORM_S8_UINT;
-
 	std::vector<std::unique_ptr<FrameResource>> mFrameResources;
 	FrameResource* mCurrFrameResource = nullptr;
 	int mCurrFrameResourceIndex = 0;
@@ -195,12 +196,9 @@ public:
 	//std::vector<D3D12_INPUT_ELEMENT_DESC> mInputLayout;
 	std::vector<D3D12_INPUT_ELEMENT_DESC> mSkinnedInputLayout;
 
-	std::vector<MaterialResource> mMaterials;
-
 	// List of all the render items.
 	std::vector<std::unique_ptr<RenderItem>> mAllRitems;
 	std::vector<RenderItem*> mRitemLayer[(int)EPassType::Num];
-
 	PassConstants mMainPassCB;
 
 	UINT mPassCbvOffset = 0;
@@ -210,7 +208,5 @@ public:
 	float mTheta = 1.5f * XM_PI;
 	float mPhi = 0.2f * XM_PI;
 	float mRadius = 15.0f;
-
 	Camera mCamera;
-	
 };

@@ -53,9 +53,9 @@ private:
 	GameTimer mTimer;
 	WNDCLASSEX wc;
 	// Derived class should set these in derived constructor to customize starting values.
-	std::wstring mMainWndCaption = L"DirectX12Lab";
-	int mClientWidth = 1920;
-	int mClientHeight = 1080;
+	std::wstring mMainWndCaption = L"Picasso";
+	int mClientWidth = 960;
+	int mClientHeight = 540;
 
 	// Convenience overrides for handling mouse input.
 	virtual void OnMouseDown(WPARAM btnState, int x, int y);

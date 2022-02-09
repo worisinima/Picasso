@@ -78,7 +78,6 @@ void OneFramePass::BuildRootSignature(ID3D12GraphicsCommandList* mCommandList, I
 
 void OneFramePass::BuildGeomertry(ID3D12GraphicsCommandList* mCommandList, ID3D12Device* md3dDevice)
 {
-
 	//Build Geomerty data
 	std::array<Vertex_OneFramePass, 4> vertices =
 	{
@@ -295,7 +294,6 @@ void OneFramePass::BuildInputLayout()
 
 void OneFramePass::BuildPSO(ID3D12GraphicsCommandList* mCommandList, ID3D12Device* md3dDevice, DXGI_FORMAT& mBackBufferFormat)
 {
-
 	//Buil PSO
 	D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc;
 	ZeroMemory(&psoDesc, sizeof(D3D12_GRAPHICS_PIPELINE_STATE_DESC));
@@ -417,7 +415,6 @@ void OneFramePass::Draw(
 void OneFramePass::DrawMaterialToRendertarget(
 	ID3D12GraphicsCommandList* mCommandList,
 	ID3D12CommandAllocator* mDirectCmdListAlloc,
-	RenderTarget* srcRT,
 	RenderTarget* destRT,
 	MaterialResource* mat,
 	const bool& bAlpha
@@ -432,15 +429,14 @@ void OneFramePass::DrawMaterialToRendertarget(
 		mCommandList->SetPipelineState(mPSO_WithoutToneMapping_Trans.Get());
 	else
 		mCommandList->SetPipelineState(mPSO_WithoutToneMapping.Get());
-
-
+	
 	Vector2& s = mWindowScale;
 	Vector2& c = mWindowCenter;
 
 	mScreenViewport.TopLeftX = c.x;
 	mScreenViewport.TopLeftY = c.y;
-	mScreenViewport.Width = static_cast<float>(srcRT->GetWidth() * s.x);
-	mScreenViewport.Height = static_cast<float>(srcRT->GetWidth() * s.y);
+	mScreenViewport.Width = static_cast<float>(destRT->GetWidth() * s.x);
+	mScreenViewport.Height = static_cast<float>(destRT->GetHeight() * s.y);
 	mScreenViewport.MinDepth = 0.0f;
 	mScreenViewport.MaxDepth = 1.0f;
 
@@ -470,7 +466,6 @@ void OneFramePass::DrawMaterialToRendertarget(
 
 	//EndRender
 	destRT->EndRender(mCommandList);
-
 }
 
 
