@@ -1,4 +1,4 @@
-﻿//bmptex.get()漫反射,  mShadowMap , mIBLBRDFTarget预积分 , normTex.get()法线 ,cubeTex.get() 立方体贴图
+//DiffsueMap, ShadowMap, IBLBRDF, NormalTexture, CubmapTexture
 Texture2D gTextures[4] : register(t0);
 TextureCube gCubeMap : register(t4);
 
