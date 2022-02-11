@@ -1,4 +1,4 @@
-
+Ôªø
 #include "DebugArrowPass.h"
 #include "FrameResource.h"
 #include "Common/d3dUtil.h"
@@ -28,7 +28,7 @@ HRESULT DebugArrowPass::InitOneFramePass(
 	mvsByteCode = d3dUtil::CompileShader(L"Shaders\\DebugArrow.hlsl", nullptr, "VS", "vs_5_1");
 	mpsByteCode = d3dUtil::CompileShader(L"Shaders\\DebugArrow.hlsl", nullptr, "PS", "ps_5_1");
 
-	// ‰»Î≤ºæ÷
+	//ËæìÂÖ•Â∏ÉÂ±Ä
 	mInputLayout =
 	{
 		{ "POSITION", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, 0, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
@@ -36,7 +36,7 @@ HRESULT DebugArrowPass::InitOneFramePass(
 		{ "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 24, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
 	};
 
-	//∏˘√Ë ˆ
+	//Ê†πÊèèËø∞
 	CD3DX12_ROOT_PARAMETER slotRootParameter[2];
 
 	slotRootParameter[0].InitAsConstantBufferView(0);
@@ -56,7 +56,7 @@ HRESULT DebugArrowPass::InitOneFramePass(
 		, IID_PPV_ARGS(&mRootSignature)));
 
 
-	//¡˜ÀÆœﬂ◊¥Ã¨
+	//ÊµÅÊ∞¥Á∫øÁä∂ÊÄÅ
 	D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc;
 	ZeroMemory(&psoDesc, sizeof(D3D12_GRAPHICS_PIPELINE_STATE_DESC));
 	psoDesc.InputLayout = { mInputLayout.data(), (UINT)mInputLayout.size() };
@@ -74,7 +74,7 @@ HRESULT DebugArrowPass::InitOneFramePass(
 	psoDesc.RasterizerState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
 	psoDesc.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
 	//psoDesc.DepthStencilState = CD3DX12_DEPTH_STENCIL_DESC(D3D12_DEFAULT); 
-	//Ω˚”√…Ó∂»∫Õƒ£∞Â–¥»Î
+	//Á¶ÅÁî®Ê∑±Â∫¶ÂíåÊ®°ÊùøÂÜôÂÖ•
 	psoDesc.DepthStencilState.DepthEnable = FALSE;
 	psoDesc.DepthStencilState.StencilEnable = FALSE;
 	psoDesc.SampleMask = UINT_MAX;
@@ -111,7 +111,7 @@ HRESULT DebugArrowPass::BuildRenderItems(
 	int constantBufferIndex = 0;
 
 	{
-		//¥¥Ω®RenderItem
+		//ÂàõÂª∫RenderItem
 		//ArrowX
 		std::string meshPath = gSystemPath + "\\Content\\Models\\Arrow.obj";
 		std::unique_ptr<StaticMeshComponent> arrowMesh = std::make_unique<StaticMeshComponent>("ArrowX", meshPath.c_str());
@@ -138,7 +138,7 @@ HRESULT DebugArrowPass::BuildRenderItems(
 	}
 
 	{
-		//¥¥Ω®RenderItem
+		//ÂàõÂª∫RenderItem
 		//ArrowY
 		std::string meshPath = gSystemPath + "\\Content\\Models\\Arrow.obj";
 		std::unique_ptr<StaticMeshComponent> arrowMesh = std::make_unique<StaticMeshComponent>("ArrowY", meshPath.c_str());
@@ -173,7 +173,7 @@ HRESULT DebugArrowPass::BuildRenderItems(
 	}
 
 	{
-		//¥¥Ω®RenderItem
+		//ÂàõÂª∫RenderItem
 		//ArrowZ
 		std::string meshPath = gSystemPath + "\\Content\\Models\\Arrow.obj";
 		std::unique_ptr<StaticMeshComponent> arrowMesh = std::make_unique<StaticMeshComponent>("ArrowZ", meshPath.c_str());
@@ -263,7 +263,7 @@ HRESULT DebugArrowPass::Draw(
 
 	mCommandList->OMSetRenderTargets(1, &destRT->GetRTVDescriptorHandle(), FALSE, nullptr);
 
-	//«Â¿Ì
+	//Ê∏ÖÁêÜ
 	Color& col = destRT->GetClearColor();
 	const float clearColor[4] = { col.R(), col.G(), col.B(), col.A() };
 	mCommandList->ClearRenderTargetView(destRT->GetRTVDescriptorHandle(), clearColor, 0, nullptr);

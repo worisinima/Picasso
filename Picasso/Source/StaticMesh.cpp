@@ -1,4 +1,4 @@
-#include "StaticMesh.h"
+ï»¿#include "StaticMesh.h"
 #include "OBJLoader.h"
 #include "FileHelper.h"
 #include "Core/Core.h"
@@ -330,7 +330,7 @@ HRESULT StaticMeshComponent::Init(
 		delete(mMeshResource);
 		mMeshResource = nullptr;
 	}
-	//Ä¬ÈÏÊ¹ÓÃOBJÄ£ÐÍÔÝÊ±
+	//é»˜è®¤ä½¿ç”¨OBJæ¨¡åž‹æš‚æ—¶
 	mMeshResource = new StaticMesh();
 	mMeshResource->LoadMesh(mFileName);
 	

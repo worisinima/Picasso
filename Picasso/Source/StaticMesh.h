@@ -1,4 +1,4 @@
-#pragma once
+ï»¿#pragma once
 
 #include <string>
 #include <vector>
@@ -9,11 +9,11 @@ using namespace DirectX;
 using namespace DirectX::PackedVector;
 
 //   |------- |
-//   | ÎÄ¼şÍ·  |
+//   | æ–‡ä»¶å¤´  |
 //   |--------|
-//   | ¶¥µãÊı¾İ|
+//   | é¡¶ç‚¹æ•°æ®|
 //   |------- |
-//   |Ë÷ÒıÊı¾İ |
+//   |ç´¢å¼•æ•°æ® |
 //   |--------|
 
 class StaticMesh

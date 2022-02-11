@@ -1,4 +1,4 @@
-#include "RenderTarget.h"
+ï»¿#include "RenderTarget.h"
 
 RenderTarget::RenderTarget(const DXGI_FORMAT& format, const DirectX::FMathLib::Color& inClearColor) :
 	mClearColor(inClearColor)
@@ -6,7 +6,7 @@ RenderTarget::RenderTarget(const DXGI_FORMAT& format, const DirectX::FMathLib::C
 	mTargetFormat = format;
 }
 
-//´ÓÁã¿ªÊ¼´´½¨Ò»¸öĞÂµÄRenderTarget£¬°üÀ¨ËüµÄResource
+//ä»é›¶å¼€å§‹åˆ›å»ºä¸€ä¸ªæ–°çš„RenderTargetï¼ŒåŒ…æ‹¬å®ƒçš„Resource
 HRESULT RenderTarget::Init(
 	ID3D12Device* device,
 	ID3D12GraphicsCommandList* cmdList,
@@ -35,13 +35,13 @@ HRESULT RenderTarget::Init(
 	hdrDesc.Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN;
 	hdrDesc.Flags = D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET;
 
-	//Ä¬ÈÏ¶Ñ
+	//é»˜è®¤å †
 	D3D12_HEAP_PROPERTIES heap;
 	memset(&heap, 0, sizeof(heap));
 	heap.Type = D3D12_HEAP_TYPE_DEFAULT;
 
-	/*clearÑÕÉ«ÓëRenderº¯ÊıµÄClear±ØĞëÒ»ÖÂ£¬ÕâÑùÒ»À´ÎÒÃÇ¼´µÃµ½ÁËÇı¶¯²ãµÄÒ»¸öÓÅ»¯´¦Àí£¬Ò²±ÜÃâÁËÔÚµ÷ÊÔÊ±£¬
-	ÒòÎªäÖÈ¾Ñ­»··´¸´Ö´ĞĞ¶ø²»¶ÏÊä³öµÄÒ»¸öÒòÎªÁ½¸öÑÕÉ«²»Ò»ÖÂ£¬¶ø²úÉúµÄÎ´ÓÅ»¯¾¯¸æĞÅÏ¢¡£*/
+	/*clearé¢œè‰²ä¸Renderå‡½æ•°çš„Clearå¿…é¡»ä¸€è‡´ï¼Œè¿™æ ·ä¸€æ¥æˆ‘ä»¬å³å¾—åˆ°äº†é©±åŠ¨å±‚çš„ä¸€ä¸ªä¼˜åŒ–å¤„ç†ï¼Œä¹Ÿé¿å…äº†åœ¨è°ƒè¯•æ—¶ï¼Œ
+	å› ä¸ºæ¸²æŸ“å¾ªç¯åå¤æ‰§è¡Œè€Œä¸æ–­è¾“å‡ºçš„ä¸€ä¸ªå› ä¸ºä¸¤ä¸ªé¢œè‰²ä¸ä¸€è‡´ï¼Œè€Œäº§ç”Ÿçš„æœªä¼˜åŒ–è­¦å‘Šä¿¡æ¯ã€‚*/
 	D3D12_CLEAR_VALUE stClear = {};
 	stClear.Format = mTargetFormat;
 	const float clearColor[4] = { mClearColor.R(), mClearColor.G(), mClearColor.B(), mClearColor.A() };
@@ -225,7 +225,7 @@ HRESULT DepthMapRenderTarget::Init(
 	optClear.DepthStencil.Depth = 1.0f;
 	optClear.DepthStencil.Stencil = 0;
 
-	//Ä¬ÈÏ¶Ñ
+	//é»˜è®¤å †
 	D3D12_HEAP_PROPERTIES heap;
 	memset(&heap, 0, sizeof(heap));
 	heap.Type = D3D12_HEAP_TYPE_DEFAULT;

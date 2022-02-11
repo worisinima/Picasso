@@ -1,4 +1,4 @@
-#pragma once
+ï»¿#pragma once
 
 #include "Texture2D.h"
 
@@ -54,9 +54,9 @@ public:
 	CD3DX12_CPU_DESCRIPTOR_HANDLE& GetRTVDescriptorHandle() { return mRTVDescriptorHandle; }
 	CD3DX12_CPU_DESCRIPTOR_HANDLE& GetDSVDescriptorHandle() { return mDSVDescriptorHandle; }
 
-	//¿ªÊ¼äÖÈ¾£¬°ÑÕâ¸ötarget×÷ÎªäÖÈ¾Ä¿±ê
+	//å¼€å§‹æ¸²æŸ“ï¼ŒæŠŠè¿™ä¸ªtargetä½œä¸ºæ¸²æŸ“ç›®æ ‡
 	virtual void BeginRender(ID3D12GraphicsCommandList* commandList);
-	//½áÊøäÖÈ¾£¬°ÑÕâ¸ötarget×ª»»ÎªShaderResource
+	//ç»“æŸæ¸²æŸ“ï¼ŒæŠŠè¿™ä¸ªtargetè½¬æ¢ä¸ºShaderResource
 	virtual void EndRender(ID3D12GraphicsCommandList* commandList);
 
 protected:
@@ -83,15 +83,15 @@ public:
 		UINT height
 	) override;
 
-	//¿ªÊ¼äÖÈ¾£¬°ÑÕâ¸ötarget×÷ÎªäÖÈ¾Ä¿±ê
+	//å¼€å§‹æ¸²æŸ“ï¼ŒæŠŠè¿™ä¸ªtargetä½œä¸ºæ¸²æŸ“ç›®æ ‡
 	virtual void BeginRender(ID3D12GraphicsCommandList* commandList) override;
-	//½áÊøäÖÈ¾£¬°ÑÕâ¸ötarget×ª»»ÎªShaderResource
+	//ç»“æŸæ¸²æŸ“ï¼ŒæŠŠè¿™ä¸ªtargetè½¬æ¢ä¸ºShaderResource
 	virtual void EndRender(ID3D12GraphicsCommandList* commandList) override;
 
 private:
 
-	//Ê¹ÓÃSwapChinµÄID3D12Resource³õÊ¼»¯Ò»¸öRender Target¶ÔÏó£¬Õâ¸öÒıÓÃÓÃÀ´±£´æSwapChinµÄResource
-	//Ëü»á±»ÓÃÈ¥³õÊ¼»¯Texture»ùÀàµÄResoue
+	//ä½¿ç”¨SwapChinçš„ID3D12Resourceåˆå§‹åŒ–ä¸€ä¸ªRender Targetå¯¹è±¡ï¼Œè¿™ä¸ªå¼•ç”¨ç”¨æ¥ä¿å­˜SwapChinçš„Resource
+	//å®ƒä¼šè¢«ç”¨å»åˆå§‹åŒ–TextureåŸºç±»çš„Resoue
 	Microsoft::WRL::ComPtr<ID3D12Resource> mBackBuffer;
 
 };
@@ -124,9 +124,9 @@ public:
 		const int& dsvHeapIndex
 	) override;
 
-	//¿ªÊ¼äÖÈ¾£¬°ÑÕâ¸ötarget×÷ÎªäÖÈ¾Ä¿±ê
+	//å¼€å§‹æ¸²æŸ“ï¼ŒæŠŠè¿™ä¸ªtargetä½œä¸ºæ¸²æŸ“ç›®æ ‡
 	virtual void BeginRender(ID3D12GraphicsCommandList* commandList) override;
-	//½áÊøäÖÈ¾£¬°ÑÕâ¸ötarget×ª»»ÎªShaderResource
+	//ç»“æŸæ¸²æŸ“ï¼ŒæŠŠè¿™ä¸ªtargetè½¬æ¢ä¸ºShaderResource
 	virtual void EndRender(ID3D12GraphicsCommandList* commandList) override;
 
 };

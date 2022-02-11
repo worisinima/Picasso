@@ -1,7 +1,7 @@
-#include "RenderCore.h"
+ï»¿#include "RenderCore.h"
 #include "../Texture2D.h"
 #include "../RenderTarget.h"
-#include<cstdarg>  // CÖĞÊÇ<stdarg.h>
+#include<cstdarg>  // Cä¸­æ˜¯<stdarg.h>
 
 const int gNumFrameResources = 3;
 
@@ -83,7 +83,7 @@ void ScreenPass::BuildScreenGeomertry(ID3D12GraphicsCommandList* mCommandList, I
 
 	const UINT vbByteSize = (UINT)vertices.size() * sizeof(ScreenVertex);
 	const UINT ibByteSize = (UINT)indices.size() * sizeof(std::uint32_t);
-	//Ä¬ÈÏ¶Ñ,ÉÏ´«¶Ñ
+	//é»˜è®¤å †,ä¸Šä¼ å †
 	D3D12_HEAP_PROPERTIES defaultHeap;
 	memset(&defaultHeap, 0, sizeof(defaultHeap));
 	defaultHeap.Type = D3D12_HEAP_TYPE_DEFAULT;
@@ -92,7 +92,7 @@ void ScreenPass::BuildScreenGeomertry(ID3D12GraphicsCommandList* mCommandList, I
 	memset(&uploadheap, 0, sizeof(uploadheap));
 	uploadheap.Type = D3D12_HEAP_TYPE_UPLOAD;
 
-	//´´½¨VertexBufferµÄ×ÊÔ´ÃèÊö
+	//åˆ›å»ºVertexBufferçš„èµ„æºæè¿°
 	D3D12_RESOURCE_DESC DefaultVertexBufferDesc;
 	memset(&DefaultVertexBufferDesc, 0, sizeof(D3D12_RESOURCE_DESC));
 	DefaultVertexBufferDesc.Dimension = D3D12_RESOURCE_DIMENSION_BUFFER;
@@ -107,7 +107,7 @@ void ScreenPass::BuildScreenGeomertry(ID3D12GraphicsCommandList* mCommandList, I
 	DefaultVertexBufferDesc.Layout = D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
 	DefaultVertexBufferDesc.Flags = D3D12_RESOURCE_FLAG_NONE;
 
-	//ÎªVertexBufferºÍVertexBufferUploader´´½¨×ÊÔ´
+	//ä¸ºVertexBufferå’ŒVertexBufferUploaderåˆ›å»ºèµ„æº
 	// Create the actual default buffer resource.
 	ThrowIfFailed(md3dDevice->CreateCommittedResource(
 		&defaultHeap,
@@ -126,21 +126,21 @@ void ScreenPass::BuildScreenGeomertry(ID3D12GraphicsCommandList* mCommandList, I
 		IID_PPV_ARGS(VertexBufferUploader.GetAddressOf())));
 
 
-	//»ñÈ¡ VertexBuffer footprint
+	//è·å– VertexBuffer footprint
 	D3D12_PLACED_SUBRESOURCE_FOOTPRINT footprint;
 	UINT64  vertex_total_bytes = 0;
 	md3dDevice->GetCopyableFootprints(&DefaultVertexBufferDesc, 0, 1, 0, &footprint, nullptr, nullptr, &vertex_total_bytes);
 
-	//Ó³ÉäÄÚ´æµØÖ·,²¢°ÑÊı¾İ¿½±´µ½VertexBufferUploaderÀï
+	//æ˜ å°„å†…å­˜åœ°å€,å¹¶æŠŠæ•°æ®æ‹·è´åˆ°VertexBufferUploaderé‡Œ
 	void* ptr_vertex = nullptr;
 	VertexBufferUploader->Map(0, nullptr, &ptr_vertex);
 	memcpy(reinterpret_cast<unsigned char*>(ptr_vertex) + footprint.Offset, vertices.data(), vbByteSize);
 	VertexBufferUploader->Unmap(0, nullptr);
 
-	//¿½±´£¬°ÑVertexBufferUploaderÀïµÄÊı¾İ¿½±´µ½VertexBufferGPUÀï
+	//æ‹·è´ï¼ŒæŠŠVertexBufferUploaderé‡Œçš„æ•°æ®æ‹·è´åˆ°VertexBufferGPUé‡Œ
 	mCommandList->CopyBufferRegion(VertexBufferGPU.Get(), 0, VertexBufferUploader.Get(), 0, vertex_total_bytes);
 
-	//ÎªVertexBufferGPU²åÈë×ÊÔ´ÆÁÕÏ
+	//ä¸ºVertexBufferGPUæ’å…¥èµ„æºå±éšœ
 	D3D12_RESOURCE_BARRIER barrier_vertex;
 	memset(&barrier_vertex, 0, sizeof(barrier_vertex));
 	barrier_vertex.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
@@ -151,7 +151,7 @@ void ScreenPass::BuildScreenGeomertry(ID3D12GraphicsCommandList* mCommandList, I
 	mCommandList->ResourceBarrier(1, &barrier_vertex);
 
 
-	//´´½¨IndexBufferµÄ×ÊÔ´ÃèÊö
+	//åˆ›å»ºIndexBufferçš„èµ„æºæè¿°
 	D3D12_RESOURCE_DESC DefaultIndexBufferDesc;
 	memset(&DefaultIndexBufferDesc, 0, sizeof(D3D12_RESOURCE_DESC));
 	DefaultIndexBufferDesc.Dimension = D3D12_RESOURCE_DIMENSION_BUFFER;
@@ -166,7 +166,7 @@ void ScreenPass::BuildScreenGeomertry(ID3D12GraphicsCommandList* mCommandList, I
 	DefaultIndexBufferDesc.Layout = D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
 	DefaultIndexBufferDesc.Flags = D3D12_RESOURCE_FLAG_NONE;
 
-	//ÎªIndexBufferºÍIndexBufferUploader´´½¨×ÊÔ´
+	//ä¸ºIndexBufferå’ŒIndexBufferUploaderåˆ›å»ºèµ„æº
 	ThrowIfFailed(md3dDevice->CreateCommittedResource(
 		&defaultHeap,
 		D3D12_HEAP_FLAG_NONE,
@@ -183,22 +183,22 @@ void ScreenPass::BuildScreenGeomertry(ID3D12GraphicsCommandList* mCommandList, I
 		nullptr,
 		IID_PPV_ARGS(IndexBufferUploader.GetAddressOf())));
 
-	//»ñÈ¡ IndexBuffer footprint
+	//è·å– IndexBuffer footprint
 	D3D12_PLACED_SUBRESOURCE_FOOTPRINT indexBufferFootprint;
 	UINT64  index_total_bytes = 0;
 	md3dDevice->GetCopyableFootprints(&DefaultIndexBufferDesc, 0, 1, 0, &indexBufferFootprint, nullptr, nullptr, &index_total_bytes);
 
 
-	//Ó³ÉäÄÚ´æµØÖ·,²¢°ÑÊı¾İ¿½±´µ½IndexBufferUploaderÀï
+	//æ˜ å°„å†…å­˜åœ°å€,å¹¶æŠŠæ•°æ®æ‹·è´åˆ°IndexBufferUploaderé‡Œ
 	void* ptr_index = nullptr;
 	IndexBufferUploader->Map(0, nullptr, &ptr_index);
 	memcpy(reinterpret_cast<unsigned char*>(ptr_index) + indexBufferFootprint.Offset, indices.data(), ibByteSize);
 	IndexBufferUploader->Unmap(0, nullptr);
 
-	//¿½±´£¬°ÑIndexBufferUploaderÀïµÄÊı¾İ¿½±´µ½IndexBufferGPUÀï
+	//æ‹·è´ï¼ŒæŠŠIndexBufferUploaderé‡Œçš„æ•°æ®æ‹·è´åˆ°IndexBufferGPUé‡Œ
 	mCommandList->CopyBufferRegion(IndexBufferGPU.Get(), 0, IndexBufferUploader.Get(), 0, index_total_bytes);
 
-	//ÎªIndexBufferGPU²åÈë×ÊÔ´ÆÁÕÏ
+	//ä¸ºIndexBufferGPUæ’å…¥èµ„æºå±éšœ
 	D3D12_RESOURCE_BARRIER barrier_index;
 	memset(&barrier_index, 0, sizeof(barrier_index));
 	barrier_index.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
@@ -231,46 +231,46 @@ void ScreenPass::BuildInputLayout()
 		XMFLOAT2 Tex0;      // 24-byte offset
 		XMFLOAT2 Tex1;      // 32-byte offset
 	};
-	ÊäÈë²¼¾ÖµÄÆ«ÒÆÁ¿ÊÇ°´ÕÕ¶¥µãÊı¾İ½á¹¹ÌåÀ´µÄ£¬ÈçÉÏÍ¼ËùÊ¾¡£²¢ÇÒ¶¼ÊÇ´Ó0¿ªÊ¼¼ÆËã
+	è¾“å…¥å¸ƒå±€çš„åç§»é‡æ˜¯æŒ‰ç…§é¡¶ç‚¹æ•°æ®ç»“æ„ä½“æ¥çš„ï¼Œå¦‚ä¸Šå›¾æ‰€ç¤ºã€‚å¹¶ä¸”éƒ½æ˜¯ä»0å¼€å§‹è®¡ç®—
 
-		16Î»±àÒëÆ÷
+		16ä½ç¼–è¯‘å™¨
 
-		char £º1¸ö×Ö½Ú
-		char*(¼´Ö¸Õë±äÁ¿): 2¸ö×Ö½Ú
-		short int : 2¸ö×Ö½Ú
-		int£º  2¸ö×Ö½Ú
-		unsigned int : 2¸ö×Ö½Ú
-		float:  4¸ö×Ö½Ú
-		double:   8¸ö×Ö½Ú
-		long:   4¸ö×Ö½Ú
-		long long:  8¸ö×Ö½Ú
-		unsigned long:  4¸ö×Ö½Ú
+		char ï¼š1ä¸ªå­—èŠ‚
+		char*(å³æŒ‡é’ˆå˜é‡): 2ä¸ªå­—èŠ‚
+		short int : 2ä¸ªå­—èŠ‚
+		intï¼š  2ä¸ªå­—èŠ‚
+		unsigned int : 2ä¸ªå­—èŠ‚
+		float:  4ä¸ªå­—èŠ‚
+		double:   8ä¸ªå­—èŠ‚
+		long:   4ä¸ªå­—èŠ‚
+		long long:  8ä¸ªå­—èŠ‚
+		unsigned long:  4ä¸ªå­—èŠ‚
 
-		32Î»±àÒëÆ÷
+		32ä½ç¼–è¯‘å™¨
 
-		char £º1¸ö×Ö½Ú
-		char*£¨¼´Ö¸Õë±äÁ¿£©: 4¸ö×Ö½Ú£¨32Î»µÄÑ°Ö·¿Õ¼äÊÇ2^32, ¼´32¸öbit£¬Ò²¾ÍÊÇ4¸ö×Ö½Ú¡£Í¬Àí64Î»±àÒëÆ÷£©
-		short int : 2¸ö×Ö½Ú
-		int£º  4¸ö×Ö½Ú
-		unsigned int : 4¸ö×Ö½Ú
-		float:  4¸ö×Ö½Ú
-		double:   8¸ö×Ö½Ú
-		long:   4¸ö×Ö½Ú
-		long long:  8¸ö×Ö½Ú
-		unsigned long:  4¸ö×Ö½Ú
+		char ï¼š1ä¸ªå­—èŠ‚
+		char*ï¼ˆå³æŒ‡é’ˆå˜é‡ï¼‰: 4ä¸ªå­—èŠ‚ï¼ˆ32ä½çš„å¯»å€ç©ºé—´æ˜¯2^32, å³32ä¸ªbitï¼Œä¹Ÿå°±æ˜¯4ä¸ªå­—èŠ‚ã€‚åŒç†64ä½ç¼–è¯‘å™¨ï¼‰
+		short int : 2ä¸ªå­—èŠ‚
+		intï¼š  4ä¸ªå­—èŠ‚
+		unsigned int : 4ä¸ªå­—èŠ‚
+		float:  4ä¸ªå­—èŠ‚
+		double:   8ä¸ªå­—èŠ‚
+		long:   4ä¸ªå­—èŠ‚
+		long long:  8ä¸ªå­—èŠ‚
+		unsigned long:  4ä¸ªå­—èŠ‚
 
-		64Î»±àÒëÆ÷
+		64ä½ç¼–è¯‘å™¨
 
-		char £º1¸ö×Ö½Ú
-		char*(¼´Ö¸Õë±äÁ¿): 8¸ö×Ö½Ú
-		short int : 2¸ö×Ö½Ú
-		int£º  4¸ö×Ö½Ú
-		unsigned int : 4¸ö×Ö½Ú
-		float:  4¸ö×Ö½Ú
-		double:   8¸ö×Ö½Ú
-		long:   8¸ö×Ö½Ú
-		long long:  8¸ö×Ö½Ú
-		unsigned long:  8¸ö×Ö½Ú
+		char ï¼š1ä¸ªå­—èŠ‚
+		char*(å³æŒ‡é’ˆå˜é‡): 8ä¸ªå­—èŠ‚
+		short int : 2ä¸ªå­—èŠ‚
+		intï¼š  4ä¸ªå­—èŠ‚
+		unsigned int : 4ä¸ªå­—èŠ‚
+		float:  4ä¸ªå­—èŠ‚
+		double:   8ä¸ªå­—èŠ‚
+		long:   8ä¸ªå­—èŠ‚
+		long long:  8ä¸ªå­—èŠ‚
+		unsigned long:  8ä¸ªå­—èŠ‚
 	*/
 	mInputLayout =
 	{

@@ -1,4 +1,4 @@
-#include "IBLBRDF.h"
+Ôªø#include "IBLBRDF.h"
 #include "RenderTarget.h"
 
 IBLBRDF::IBLBRDF()
@@ -29,7 +29,7 @@ void IBLBRDF::BuildPSO(ID3D12GraphicsCommandList* mCommandList, ID3D12Device* md
 	};
 	psoDesc.RasterizerState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
 	psoDesc.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
-	//psoDesc.DepthStencilState = CD3DX12_DEPTH_STENCIL_DESC(D3D12_DEFAULT); Ω˚”√…Ó∂»∫Õƒ£∞Â–¥»Î
+	//psoDesc.DepthStencilState = CD3DX12_DEPTH_STENCIL_DESC(D3D12_DEFAULT); Á¶ÅÁî®Ê∑±Â∫¶ÂíåÊ®°ÊùøÂÜôÂÖ•
 	psoDesc.DepthStencilState.DepthEnable = FALSE;
 	psoDesc.DepthStencilState.StencilEnable = FALSE;
 	psoDesc.SampleMask = UINT_MAX;

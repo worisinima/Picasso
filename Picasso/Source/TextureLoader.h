@@ -1,4 +1,4 @@
-#pragma once
+ï»¿#pragma once
 
 #include <assert.h>
 #include <algorithm>
@@ -94,7 +94,7 @@ namespace DirectX
 		}
 		int pixel_data_size = InitTextureBulkData.size() * sizeof(Color4<uint8_t>);
 
-		//ÎªTextureÉú³ÉResource
+		//ä¸ºTextureç”ŸæˆResource
 		D3D12_RESOURCE_DESC texDesc;
 		memset(&texDesc, 0, sizeof(D3D12_RESOURCE_DESC));
 		texDesc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
@@ -109,12 +109,12 @@ namespace DirectX
 		texDesc.Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN;
 		texDesc.Flags = D3D12_RESOURCE_FLAG_NONE;
 
-		//Ä¬ÈÏ¶Ñ
+		//é»˜è®¤å †
 		D3D12_HEAP_PROPERTIES heap;
 		memset(&heap, 0, sizeof(heap));
 		heap.Type = D3D12_HEAP_TYPE_DEFAULT;
 
-		//ÕâÀï´´½¨µÄÊ±ºò¾ÍÖ¸ÈÏÁËCOPY_DEST×´Ì¬£¬ËùÒÔÔÚ×îºóÒªÓÃ×ÊÔ´ÆÁÕÏ°ÑËüÖØĞÂÅª³ÉÖ»¶Á
+		//è¿™é‡Œåˆ›å»ºçš„æ—¶å€™å°±æŒ‡è®¤äº†COPY_DESTçŠ¶æ€ï¼Œæ‰€ä»¥åœ¨æœ€åè¦ç”¨èµ„æºå±éšœæŠŠå®ƒé‡æ–°å¼„æˆåªè¯»
 		ThrowIfFailed(device->CreateCommittedResource(
 			&heap,
 			D3D12_HEAP_FLAG_NONE,
@@ -124,12 +124,12 @@ namespace DirectX
 			IID_PPV_ARGS(&texture)
 		));
 
-		//»ñÈ¡footprint
+		//è·å–footprint
 		D3D12_PLACED_SUBRESOURCE_FOOTPRINT footprint;
 		UINT64  total_bytes = 0;
 		device->GetCopyableFootprints(&texDesc, 0, 1, 0, &footprint, nullptr, nullptr, &total_bytes);
 
-		//ÎªUploadTexture´´½¨×ÊÔ´
+		//ä¸ºUploadTextureåˆ›å»ºèµ„æº
 		D3D12_RESOURCE_DESC uploadTexDesc;
 		memset(&uploadTexDesc, 0, sizeof(uploadTexDesc));
 		uploadTexDesc.Dimension = D3D12_RESOURCE_DIMENSION_BUFFER;
@@ -153,12 +153,12 @@ namespace DirectX
 			IID_PPV_ARGS(&textureUploadHeap)
 		));
 
-		//Ó³ÉäÄÚ´æµØÖ·,²¢°ÑÌùÍ¼Êı¾İ¿½±´µ½textureUploadHeapÀï
+		//æ˜ å°„å†…å­˜åœ°å€,å¹¶æŠŠè´´å›¾æ•°æ®æ‹·è´åˆ°textureUploadHeapé‡Œ
 		void* ptr = nullptr;
 		textureUploadHeap->Map(0, nullptr, &ptr);
 		memcpy(reinterpret_cast<unsigned char*>(ptr) + footprint.Offset, InitTextureBulkData.data(), pixel_data_size);
 
-		//¿½±´£¬°ÑtextureUploadHeapÀïµÄÊı¾İ¿½±´µ½textureÀï
+		//æ‹·è´ï¼ŒæŠŠtextureUploadHeapé‡Œçš„æ•°æ®æ‹·è´åˆ°textureé‡Œ
 		D3D12_TEXTURE_COPY_LOCATION dest;
 		memset(&dest, 0, sizeof(dest));
 		dest.pResource = texture.Get();
@@ -173,7 +173,7 @@ namespace DirectX
 
 		cmdList->CopyTextureRegion(&dest, 0, 0, 0, &src, nullptr);
 		
-		//²åÈë×ÊÔ´ÆÁÕÏ
+		//æ’å…¥èµ„æºå±éšœ
 		D3D12_RESOURCE_BARRIER barrier;
 		memset(&barrier, 0, sizeof(barrier));
 		barrier.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;

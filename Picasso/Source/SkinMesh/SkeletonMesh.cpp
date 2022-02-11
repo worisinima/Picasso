@@ -1,4 +1,4 @@
-#include "SkeletonMesh.h"
+ï»¿#include "SkeletonMesh.h"
 #include <map>
 using namespace DirectX;
 using namespace FMathLib;
@@ -294,7 +294,7 @@ void SkeletonMesh::LoadSkeletonMesh(
 
 		std::vector<AnimationTrack>& animationTracks = animation.mAnimationTracks;
 
-		//°Ñ¶¯»­Êı¾İ³éÈ¡³öÀ´
+		//æŠŠåŠ¨ç”»æ•°æ®æŠ½å–å‡ºæ¥
 		std::vector<AnimChannle> animationChannles;
 		for (int CI = 0; CI < anim->mNumChannels; CI++)
 		{
@@ -339,14 +339,14 @@ void SkeletonMesh::LoadSkeletonMesh(
 			animationChannles.push_back(std::move(channle));
 		}
 
-		//ÓÃ³éÈ¡³öÀ´µÄ¶¯»­Êı¾İ½¨Á¢¶¯»­¹ìµÀ
+		//ç”¨æŠ½å–å‡ºæ¥çš„åŠ¨ç”»æ•°æ®å»ºç«‹åŠ¨ç”»è½¨é“
 		for (int CI = 0; CI < animationChannles.size(); CI++)
 		{
 			std::string channleName = animationChannles[CI].mName;
-			//Èç¹û¶¯»­Í¨µÀ°üº¬ÁË_$AssimpFbx$_£¬ÄÇÃ´¶¯»­¹ìµÀÀïTransform£¬rotation£¬sacaleÖ»ÓĞÒ»¸öFramesÊı¾İÊÇÓĞÒâÒåµÄ
+			//å¦‚æœåŠ¨ç”»é€šé“åŒ…å«äº†_$AssimpFbx$_ï¼Œé‚£ä¹ˆåŠ¨ç”»è½¨é“é‡ŒTransformï¼Œrotationï¼Œsacaleåªæœ‰ä¸€ä¸ªFramesæ•°æ®æ˜¯æœ‰æ„ä¹‰çš„
 			if (gSHepler.IsContain(channleName, "_$AssimpFbx$_"))
 			{
-				//°Ñ¶¯»­µÄÃû×Ö²ğ½â¿ª£¬¶¯»­¹ìµÀµÄÃû×ÖÒ»°ãÊÇXXX__$AssimpFbx$_TransformÖ®ÀàµÄ£¬Ç°ÃæÊÇ¶¯»­¹ìµÀµÄÃû×Ö£¬ºóÃæÊÇ¹ìµÀµÄÓĞÒâÒåÊı¾İµÄÍ¨µÀ
+				//æŠŠåŠ¨ç”»çš„åå­—æ‹†è§£å¼€ï¼ŒåŠ¨ç”»è½¨é“çš„åå­—ä¸€èˆ¬æ˜¯XXX__$AssimpFbx$_Transformä¹‹ç±»çš„ï¼Œå‰é¢æ˜¯åŠ¨ç”»è½¨é“çš„åå­—ï¼Œåé¢æ˜¯è½¨é“çš„æœ‰æ„ä¹‰æ•°æ®çš„é€šé“
 				std::vector<std::string>nameSplit;
 				gSHepler.Split(channleName, nameSplit, "_$AssimpFbx$_");
 
@@ -369,15 +369,15 @@ void SkeletonMesh::LoadSkeletonMesh(
 			}
 		}
 
-		//´´½¨ºÃ¹ìµÀÒÔºó£¬¾Í¿ÉÒÔ´ÓchannleÀï°ÑÊı¾İÌî³äµ½¹ìµÀÀïÁË
+		//åˆ›å»ºå¥½è½¨é“ä»¥åï¼Œå°±å¯ä»¥ä»channleé‡ŒæŠŠæ•°æ®å¡«å……åˆ°è½¨é“é‡Œäº†
 		for (int CI = 0; CI < animationChannles.size(); CI++)
 		{
 			std::string channleName = animationChannles[CI].mName;
 			AnimChannle& animChannle = animationChannles[CI];
-			//Èç¹û¶¯»­Í¨µÀ°üº¬ÁË_$AssimpFbx$_£¬ÄÇÃ´¶¯»­¹ìµÀÀïTransform£¬rotation£¬sacaleÖ»ÓĞÒ»¸öFramesÊı¾İÊÇÓĞÒâÒåµÄ
+			//å¦‚æœåŠ¨ç”»é€šé“åŒ…å«äº†_$AssimpFbx$_ï¼Œé‚£ä¹ˆåŠ¨ç”»è½¨é“é‡ŒTransformï¼Œrotationï¼Œsacaleåªæœ‰ä¸€ä¸ªFramesæ•°æ®æ˜¯æœ‰æ„ä¹‰çš„
 			if (gSHepler.IsContain(channleName, "_$AssimpFbx$_"))
 			{
-				//°Ñ¶¯»­µÄÃû×Ö²ğ½â¿ª£¬¶¯»­¹ìµÀµÄÃû×ÖÒ»°ãÊÇXXX__$AssimpFbx$_TransformÖ®ÀàµÄ£¬Ç°ÃæÊÇ¶¯»­¹ìµÀµÄÃû×Ö£¬ºóÃæÊÇ¹ìµÀµÄÓĞÒâÒåÊı¾İµÄÍ¨µÀ
+				//æŠŠåŠ¨ç”»çš„åå­—æ‹†è§£å¼€ï¼ŒåŠ¨ç”»è½¨é“çš„åå­—ä¸€èˆ¬æ˜¯XXX__$AssimpFbx$_Transformä¹‹ç±»çš„ï¼Œå‰é¢æ˜¯åŠ¨ç”»è½¨é“çš„åå­—ï¼Œåé¢æ˜¯è½¨é“çš„æœ‰æ„ä¹‰æ•°æ®çš„é€šé“
 				std::vector<std::string>nameSplit;
 				gSHepler.Split(channleName, nameSplit, "_$AssimpFbx$_");
 
@@ -525,7 +525,7 @@ void SkeletonMesh::LoadSkeletonMesh(
 
 
 
-//³õÊ¼°æ±¾
+//åˆå§‹ç‰ˆæœ¬
 void SkeletonMeshComponent::UpdateSkinnedCBs(const GameTimer& gt, FrameResource* mCurrFrameResource)
 {
 	auto currSkinnedCB = mCurrFrameResource->SkinnedCB.get();

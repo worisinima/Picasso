@@ -1,4 +1,4 @@
-
+ï»¿
 #pragma once
 
 #include "Core.h"
@@ -62,7 +62,7 @@ public:
 		EBlendState blendState = EBlendState::EOpaque
 	);
 
-	//Ö»ÊÇ´æ´¢Ò»ÏÂtexture£¬RootSignature£¬PSO£¬Shader²»Ê¹ÓÃmaterialµÄ
+	//åªæ˜¯å­˜å‚¨ä¸€ä¸‹textureï¼ŒRootSignatureï¼ŒPSOï¼ŒShaderä¸ä½¿ç”¨materialçš„
 	HRESULT InitMaterial(
 		ID3D12Device* md3dDevice,
 		ID3D12GraphicsCommandList* cmdList,

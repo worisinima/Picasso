@@ -1,4 +1,4 @@
-#pragma once
+ï»¿#pragma once
 
 #include "Core/RenderCore.h"
 
@@ -30,7 +30,7 @@ public:
 		RenderTarget* destRT
 	);
 
-	//Ò»¸ö²ÄÖÊ£¬²¢ÇÒËüµÄshaderÅäÓĞÒ»ÕÅÌùÍ¼
+	//ä¸€ä¸ªæè´¨ï¼Œå¹¶ä¸”å®ƒçš„shaderé…æœ‰ä¸€å¼ è´´å›¾
 	void DrawMaterialToRendertarget(
 		ID3D12GraphicsCommandList* mCommandList,
 		ID3D12CommandAllocator* mDirectCmdListAlloc,
@@ -76,9 +76,9 @@ private:
 	ComPtr<ID3D12PipelineState> mPSO_WithoutToneMapping_Trans = nullptr;
 	void BuildPSO(ID3D12GraphicsCommandList* mCommandList, ID3D12Device* md3dDevice, DXGI_FORMAT& mBackBufferFormat);
 
-	//ÊäÈëÒ»ÕÅÍ¼Æ¬£¬²¢ÇÒÅäÓĞÁùÖÖStaticSampler
+	//è¾“å…¥ä¸€å¼ å›¾ç‰‡ï¼Œå¹¶ä¸”é…æœ‰å…­ç§StaticSampler
 	ComPtr<ID3D12RootSignature> mRootSignature = nullptr;
-	//Ê²Ã´ÊäÈë¶¼Ã»ÓĞ£¬µ¥´¿ÓÃShader»­Ò»Ğ©¶«Î÷Ê±Ê¹ÓÃÕâ¸ömRootSignature_WithNoInput
+	//ä»€ä¹ˆè¾“å…¥éƒ½æ²¡æœ‰ï¼Œå•çº¯ç”¨Shaderç”»ä¸€äº›ä¸œè¥¿æ—¶ä½¿ç”¨è¿™ä¸ªmRootSignature_WithNoInput
 	ComPtr<ID3D12RootSignature> mRootSignature_WithNoInput = nullptr;
 	std::array<const CD3DX12_STATIC_SAMPLER_DESC, 6> GetStaticSamplers();
 	void BuildRootSignature(ID3D12GraphicsCommandList* mCommandList, ID3D12Device* md3dDevice);

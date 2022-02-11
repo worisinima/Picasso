@@ -1,4 +1,4 @@
-/*
+﻿/*
  #
  #  File        : loop_macros.h
  #                ( C++ header file - CImg plug-in )
@@ -11,7 +11,7 @@
  #                This file is a part of the CImg Library project.
  #                ( http://cimg.eu )
  #
- #  Copyright   : David Tschumperlé
+ #  Copyright   : David Tschumperl茅
  #                ( http://tschumperle.users.greyc.fr/ )
  #
  #  License     : CeCILL v2.0

@@ -1,4 +1,4 @@
-//***************************************************************************************
+ï»¿//***************************************************************************************
 // d3dUtil.h by Frank Luna (C) 2015 All Rights Reserved.
 //
 // General helper code.
@@ -184,7 +184,7 @@ struct MeshGeometry
 	// A MeshGeometry may store multiple geometries in one vertex/index buffer.
 	// Use this container to define the Submesh geometries so we can draw
 	// the Submeshes individually.
-    //·Ö¿ªDraw¿ÉÒÔÉèÖÃ²»Í¬µÄ²ÄÖÊ
+    //åˆ†å¼€Drawå¯ä»¥è®¾ç½®ä¸åŒçš„æè´¨
 	std::unordered_map<std::string, SubmeshGeometry> DrawArgs;
 
 	D3D12_VERTEX_BUFFER_VIEW VertexBufferView()const

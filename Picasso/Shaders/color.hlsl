@@ -1,4 +1,4 @@
-//bmptex.get()Âş·´Éä,  mShadowMap , mIBLBRDFTargetÔ¤»ı·Ö , normTex.get()·¨Ïß ,cubeTex.get() Á¢·½ÌåÌùÍ¼
+ï»¿//bmptex.get()æ¼«åå°„,  mShadowMap , mIBLBRDFTargeté¢„ç§¯åˆ† , normTex.get()æ³•çº¿ ,cubeTex.get() ç«‹æ–¹ä½“è´´å›¾
 Texture2D gTextures[4] : register(t0);
 TextureCube gCubeMap : register(t4);
 

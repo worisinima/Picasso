@@ -58,7 +58,7 @@ public:
 	BaseRenderer& operator=(const BaseRenderer& rhs) = delete;
 	~BaseRenderer();
 	
-	virtual bool InitRenderer(class D3DApp* app){ return false;};
+	virtual bool InitRenderer(class D3DApp* app);
 	virtual void Draw(const GameTimer& gt){}
 	virtual void Update(const GameTimer& gt){}
 	virtual void CreateCommandObjects();

@@ -26,10 +26,15 @@ public:
 
 	~RenderTargetPool();
 
+	void CreateRtvAndDsvDescriptorHeaps();
+
 private:
 	
 	std::vector<RenderTarget*> mRenderTargetPool;
 	std::vector<RenderTarget*> mDepthRenderTargetPool;
 
+	Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> mRtvHeap;
+	Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> mDsvHeap;
+	Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> mSRVHeap;
 };
 

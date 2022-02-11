@@ -28,3 +28,8 @@ RenderTargetPool::~RenderTargetPool()
 		ReleaseRenderTarget(t)
 	}
 }
+
+void RenderTargetPool::CreateRtvAndDsvDescriptorHeaps()
+{
+
+}

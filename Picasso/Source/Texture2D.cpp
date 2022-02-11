@@ -1,4 +1,4 @@
-#include "Texture2D.h"
+ï»¿#include "Texture2D.h"
 #include "TextureLoader.h"
 #include "String/StringHelper.h"
 #include <comdef.h>
@@ -10,7 +10,7 @@ HRESULT Texture2D::Init(
 )
 {
 	mTextureName = szFileName;
-	//¸ù¾İ²»Í¬µÄÎÄ¼ş¸ñÊ½Ñ¡ÓÃ²»Í¬µÄLoader
+	//æ ¹æ®ä¸åŒçš„æ–‡ä»¶æ ¼å¼é€‰ç”¨ä¸åŒçš„Loader
 	if (gSHepler.IsContain(szFileName, ".bmp"))
 	{
 		#if _DEBUG

@@ -1,4 +1,4 @@
-
+ï»¿
 #include "Material.h"
 
 HRESULT MaterialResource::InitMaterial(
@@ -15,9 +15,9 @@ HRESULT MaterialResource::InitMaterial(
 {
 	mBlendState = blendState;
 
-	//´æ·Å¸÷ÖÖShaderResourceView
+	//å­˜æ”¾å„ç§ShaderResourceView
 	D3D12_DESCRIPTOR_HEAP_DESC HeapDesc;
-	HeapDesc.NumDescriptors = textures.size();
+	HeapDesc.NumDescriptors = (UINT)textures.size();
 	HeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
 	HeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
 	HeapDesc.NodeMask = 0;
@@ -28,13 +28,13 @@ HRESULT MaterialResource::InitMaterial(
 		textures[index]->CreateSRV(md3dDevice, cmdList, mMaterialSRVHeap.Get(), index);
 	}
 
-	//°Ñshader±£´æµ½²ÄÖÊÀï
+	//æŠŠshaderä¿å­˜åˆ°æè´¨é‡Œ
 	if (VS == nullptr || PS == nullptr) ThrowIfFailed(S_FALSE)
 		mVS = VS;
 	mPS = PS;
 
-	ThrowIfFailed(BuildRootSignature(md3dDevice, cmdList, textures.size()));
-	ThrowIfFailed(BuildSkinnedRootSignature(md3dDevice, cmdList, textures.size()));
+	ThrowIfFailed(BuildRootSignature(md3dDevice, cmdList, (UINT)textures.size()));
+	ThrowIfFailed(BuildSkinnedRootSignature(md3dDevice, cmdList, (UINT)textures.size()));
 
 	//Layout
 	mSkinnedInputLayout =
@@ -54,7 +54,7 @@ HRESULT MaterialResource::InitMaterial(
 		{ "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 36, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
 	};
 
-	//´´½¨ShaderPiplineObjectÃèÊö,ÕæÕýµÄ´´½¨ÐèÒªµ½äÖÈ¾Æ÷Àï£¬ÒòÎªPSO²¿·Ö²ÎÊýÐèÒªäÖÈ¾Æ÷µÄÏà¹ØÐÅÏ¢
+	//åˆ›å»ºShaderPiplineObjectæè¿°,çœŸæ­£çš„åˆ›å»ºéœ€è¦åˆ°æ¸²æŸ“å™¨é‡Œï¼Œå› ä¸ºPSOéƒ¨åˆ†å‚æ•°éœ€è¦æ¸²æŸ“å™¨çš„ç›¸å…³ä¿¡æ¯
 	D3D12_GRAPHICS_PIPELINE_STATE_DESC opaquePsoDesc;
 	ZeroMemory(&opaquePsoDesc, sizeof(D3D12_GRAPHICS_PIPELINE_STATE_DESC));
 	if (bSkinnedMesh)
@@ -88,7 +88,7 @@ HRESULT MaterialResource::InitMaterial(
 
 	ThrowIfFailed(md3dDevice->CreateGraphicsPipelineState(&opaquePsoDesc, IID_PPV_ARGS(&mOpaquePSO)));
 
-	// PSO for opaque wireframe objects.
+	// PSO for opaque WireFrame objects.
 	D3D12_GRAPHICS_PIPELINE_STATE_DESC opaqueWireframePsoDesc = opaquePsoDesc;
 	opaqueWireframePsoDesc.RasterizerState.FillMode = D3D12_FILL_MODE_WIREFRAME;
 	ThrowIfFailed(md3dDevice->CreateGraphicsPipelineState(&opaqueWireframePsoDesc, IID_PPV_ARGS(&mWirframePSO)));
@@ -129,12 +129,16 @@ HRESULT MaterialResource::InitMaterial(
 
 HRESULT MaterialResource::InitMaterial(ID3D12Device* md3dDevice, ID3D12GraphicsCommandList* cmdList, std::vector<Texture*>textures)
 {
-	//´æ·Å¸÷ÖÖShaderResourceView
+	//å­˜æ”¾å„ç§ShaderResourceView
 	D3D12_DESCRIPTOR_HEAP_DESC HeapDesc;
-	HeapDesc.NumDescriptors = textures.size();
+	HeapDesc.NumDescriptors = (UINT)textures.size();
 	HeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
 	HeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
 	HeapDesc.NodeMask = 0;
+	if (mMaterialSRVHeap)
+	{
+		mMaterialSRVHeap->Release();
+	}
 	ThrowIfFailed(md3dDevice->CreateDescriptorHeap(&HeapDesc, IID_PPV_ARGS(&mMaterialSRVHeap)));
 
 	for (int index = 0; index < textures.size(); index++)
@@ -173,8 +177,7 @@ HRESULT MaterialResource::BuildRootSignature(ID3D12Device* md3dDevice, ID3D12Gra
 	// create a root signature with a single slot which points to a descriptor range consisting of a single constant buffer
 	ComPtr<ID3DBlob> serializedRootSig = nullptr;
 	ComPtr<ID3DBlob> errorBlob = nullptr;
-	HRESULT hr = D3D12SerializeRootSignature(&rootSigDesc, D3D_ROOT_SIGNATURE_VERSION_1,
-		serializedRootSig.GetAddressOf(), errorBlob.GetAddressOf());
+	HRESULT hr = D3D12SerializeRootSignature(&rootSigDesc, D3D_ROOT_SIGNATURE_VERSION_1, serializedRootSig.GetAddressOf(), errorBlob.GetAddressOf());
 
 	if (errorBlob != nullptr)
 	{
@@ -182,11 +185,13 @@ HRESULT MaterialResource::BuildRootSignature(ID3D12Device* md3dDevice, ID3D12Gra
 	}
 	ThrowIfFailed(hr);
 
-	ThrowIfFailed(md3dDevice->CreateRootSignature(
+	ThrowIfFailed(md3dDevice->CreateRootSignature
+	(
 		0,
 		serializedRootSig->GetBufferPointer(),
 		serializedRootSig->GetBufferSize(),
-		IID_PPV_ARGS(mRootSignature.GetAddressOf())));
+		IID_PPV_ARGS(mRootSignature.GetAddressOf())
+	));
 
 	return S_OK;
 }

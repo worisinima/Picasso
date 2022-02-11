@@ -1,8 +1,8 @@
-
+ï»¿
 #include "Core.h"
 #include "windows.h"
 
-//ÔÚMainº¯ÊıÒ»¿ªÊ¼¾Í³õÊ¼»¯Ëü
+//åœ¨Mainå‡½æ•°ä¸€å¼€å§‹å°±åˆå§‹åŒ–å®ƒ
 std::string gSystemPath = "";
 unsigned int gAppWindowWidth = 0;
 unsigned int gAppWindowHeight = 0;

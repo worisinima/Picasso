@@ -1,4 +1,4 @@
-/*
+﻿/*
  #
  #  File            : CImg.h
  #                    ( C++ header file )
@@ -7,7 +7,7 @@
  #                    This file is the main component of the CImg Library project.
  #                    ( http://cimg.eu )
  #
- #  Project manager : David Tschumperlé
+ #  Project manager : David Tschumperl茅
  #                    ( http://tschumperle.users.greyc.fr/ )
  #
  #                    A complete list of contributors is available in file 'README.txt'
@@ -41853,7 +41853,7 @@ namespace cimg_library_suffixed {
     /**
        \param value Reference value.
        \param metric_mask Metric mask.
-       \note The algorithm code has been initially proposed by A. Meijster, and modified by D. Tschumperlé.
+       \note The algorithm code has been initially proposed by A. Meijster, and modified by D. Tschumperl茅.
     **/
     template<typename t>
     CImg<T>& distance(const T& value, const CImg<t>& metric_mask) {

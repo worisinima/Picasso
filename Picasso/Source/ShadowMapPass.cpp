@@ -1,4 +1,4 @@
-#include "ShadowMapPass.h"
+ï»¿#include "ShadowMapPass.h"
 #include "RenderTarget.h"
 #include "Core/RenderCore.h"
 
@@ -32,7 +32,7 @@ HRESULT ShadowMapPass::InitShadowMapPass(
 	mShadowPassViewport.MaxDepth = 1.0f;
 	mShadowPassScissorRect = { 0, 0, mShadowMap->GetWidth(), mShadowMap->GetHeight() };
 
-	//³õÊ¼»¯ÉãÏñ»ú
+	//åˆå§‹åŒ–æ‘„åƒæœº
 	mOrthCamera.LookAt(
 		DirectX::XMVectorSet(-32.0f, 40.0f, 20.0f, 1),
 		DirectX::XMVectorSet(0, 0, 0, 1),
@@ -48,7 +48,7 @@ HRESULT ShadowMapPass::InitShadowMapPass(
 	mvsSkinByteCode = d3dUtil::CompileShader(L"Shaders\\PositionOnly.hlsl", def, "VS", "vs_5_1");
 	mpsByteCode = d3dUtil::CompileShader(L"Shaders\\PositionOnly.hlsl", nullptr, "PS", "ps_5_1");
 
-	//ÊäÈë²¼¾Ö
+	//è¾“å…¥å¸ƒå±€
 	mInputLayout =
 	{
 		{ "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
@@ -66,7 +66,7 @@ HRESULT ShadowMapPass::InitShadowMapPass(
 		{ "BONEINDICES", 0, DXGI_FORMAT_R8G8B8A8_UINT, 0, 56, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 }
 	};
 
-	//¸ùÃèÊö
+	//æ ¹æè¿°
 	{
 		CD3DX12_ROOT_PARAMETER slotRootParameter[2];
 		slotRootParameter[0].InitAsConstantBufferView(0);
@@ -105,7 +105,7 @@ HRESULT ShadowMapPass::InitShadowMapPass(
 			, IID_PPV_ARGS(&mSkinRootSignature)));
 	}
 
-	//Á÷Ë®Ïß×´Ì¬
+	//æµæ°´çº¿çŠ¶æ€
 	D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc;
 	ZeroMemory(&psoDesc, sizeof(D3D12_GRAPHICS_PIPELINE_STATE_DESC));
 	psoDesc.InputLayout = { mInputLayout.data(), (UINT)mInputLayout.size() };

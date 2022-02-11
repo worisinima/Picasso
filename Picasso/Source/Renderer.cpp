@@ -1,4 +1,4 @@
-
+ï»¿
 #include "Renderer.h"
 #include <WindowsX.h>
 #include "D3DApp.h"
@@ -42,6 +42,87 @@ BaseRenderer::~BaseRenderer()
 	mRenderTargetPool.release();
 }
 
+bool BaseRenderer::InitRenderer(class D3DApp* app)
+{
+	//ä¿å­˜çª—å£å¥æŸ„
+	mhMainWnd = app->mhMainWnd;
+
+#if defined(DEBUG) || defined(_DEBUG) 
+	// Enable the D3D12 debug layer.
+	{
+		ComPtr<ID3D12Debug> debugController;
+		ThrowIfFailed(D3D12GetDebugInterface(IID_PPV_ARGS(&debugController)));
+		debugController->EnableDebugLayer();
+	}
+#endif
+
+	//Create DXGIFactory
+	ThrowIfFailed(CreateDXGIFactory1(IID_PPV_ARGS(&mdxgiFactory)));
+
+	//Try to create hardware device
+	HRESULT hardwareResult = D3D12CreateDevice
+	(
+		nullptr,// default adapter
+		D3D_FEATURE_LEVEL_11_0,
+		IID_PPV_ARGS(&md3dDevice)
+	);
+
+	// FallBack to WARP device.
+	if (FAILED(hardwareResult))
+	{
+		ComPtr<IDXGIAdapter> pWarpAdapter;
+		ThrowIfFailed(mdxgiFactory->EnumWarpAdapter(IID_PPV_ARGS(&pWarpAdapter)));
+
+		ThrowIfFailed(D3D12CreateDevice(
+			pWarpAdapter.Get(),
+			D3D_FEATURE_LEVEL_11_0,
+			IID_PPV_ARGS(&md3dDevice)));
+	}
+
+	//Create fence
+	ThrowIfFailed(md3dDevice->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&mFence)));
+
+	//Get the descriptor size
+	mRtvDescriptorSize = md3dDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
+	mDsvDescriptorSize = md3dDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_DSV);
+	mCbvSrvUavDescriptorSize = md3dDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+
+	// Check 4X MSAA quality support for our back buffer format.
+	// All Direct3D 11 capable devices support 4X MSAA for all render 
+	// target formats, so we only need to check quality support.
+	D3D12_FEATURE_DATA_MULTISAMPLE_QUALITY_LEVELS msQualityLevels;
+	msQualityLevels.Format = mBackBufferFormat;
+	msQualityLevels.SampleCount = 4;
+	msQualityLevels.Flags = D3D12_MULTISAMPLE_QUALITY_LEVELS_FLAG_NONE;
+	msQualityLevels.NumQualityLevels = 0;
+	ThrowIfFailed(md3dDevice->CheckFeatureSupport(
+		D3D12_FEATURE_MULTISAMPLE_QUALITY_LEVELS,
+		&msQualityLevels,
+		sizeof(msQualityLevels)));
+
+	m4xMsaaQuality = msQualityLevels.NumQualityLevels;
+	assert(m4xMsaaQuality > 0 && "Unexpected MSAA quality level.");
+
+#ifdef _DEBUG
+	LogAdapters();
+#endif
+
+	CreateCommandObjects();
+	CreateSwapChain();
+	
+	// Reset the command list to prep for initialization commands.
+	ThrowIfFailed(mCommandList->Reset(mDirectCmdListAlloc.Get(), nullptr));
+	// Execute the initialization commands.
+	ThrowIfFailed(mCommandList->Close());
+	ID3D12CommandList* cmdsLists[] = { mCommandList.Get() };
+	mCommandQueue->ExecuteCommandLists(_countof(cmdsLists), cmdsLists);
+
+	// Wait until initialization is complete.
+	FlushCommandQueue();
+	
+	return true;
+}
+
 void BaseRenderer::CreateCommandObjects()
 {
 	//Create command queue
@@ -50,7 +131,7 @@ void BaseRenderer::CreateCommandObjects()
 	queueDesc.Flags = D3D12_COMMAND_QUEUE_FLAG_NONE;
 	ThrowIfFailed(md3dDevice->CreateCommandQueue(&queueDesc, IID_PPV_ARGS(&mCommandQueue)));
 
-	//Create command alocator
+	//Create command Allocator
 	ThrowIfFailed(md3dDevice->CreateCommandAllocator(
 		D3D12_COMMAND_LIST_TYPE_DIRECT,
 		IID_PPV_ARGS(mDirectCmdListAlloc.GetAddressOf())));
@@ -77,7 +158,7 @@ void BaseRenderer::CreateSwapChain()
 	DXGI_SWAP_CHAIN_DESC sd;
 	sd.BufferDesc.Width = mClientWidth;
 	sd.BufferDesc.Height = mClientHeight;
-	sd.BufferDesc.RefreshRate.Numerator = 60;//Ë¢ĞÂÂÊ
+	sd.BufferDesc.RefreshRate.Numerator = 60;//åˆ·æ–°ç‡
 	sd.BufferDesc.RefreshRate.Denominator = 1;
 	sd.BufferDesc.Format = mBackBufferFormat;
 	sd.BufferDesc.ScanlineOrdering = DXGI_MODE_SCANLINE_ORDER_UNSPECIFIED;
@@ -86,7 +167,7 @@ void BaseRenderer::CreateSwapChain()
 	sd.SampleDesc.Quality = m4xMsaaState ? DXGI_STANDARD_MULTISAMPLE_QUALITY_PATTERN : 0;
 	sd.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
 	sd.BufferCount = SwapChainBufferCount;
-	sd.OutputWindow = mhMainWnd;//ºÍ´°¿Ú¹ØÁª
+	sd.OutputWindow = mhMainWnd;//å’Œçª—å£å…³è”
 	sd.Windowed = true;
 	sd.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
 	sd.Flags = DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
@@ -100,7 +181,7 @@ void BaseRenderer::CreateSwapChain()
 
 void BaseRenderer::CreateRtvAndDsvDescriptorHeaps()
 {
-	//´æ·ÅRender TargetView
+	//å­˜æ”¾Render TargetView
 	D3D12_DESCRIPTOR_HEAP_DESC rtvHeapDesc;
 	rtvHeapDesc.NumDescriptors = SwapChainBufferCount + mRenderTargetPool->GetRenderTargetPoolSize();
 	rtvHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_RTV;
@@ -108,7 +189,7 @@ void BaseRenderer::CreateRtvAndDsvDescriptorHeaps()
 	rtvHeapDesc.NodeMask = 0;
 	ThrowIfFailed(md3dDevice->CreateDescriptorHeap(&rtvHeapDesc, IID_PPV_ARGS(mRtvHeap.GetAddressOf())));
 
-	//´æ·ÅäÖÈ¾Ä¿±êµÄShaderResourceView
+	//å­˜æ”¾æ¸²æŸ“ç›®æ ‡çš„ShaderResourceView
 	D3D12_DESCRIPTOR_HEAP_DESC cbvHeapDesc;
 	cbvHeapDesc.NumDescriptors = SwapChainBufferCount + mRenderTargetPool->GetRenderTargetPoolSize();
 	cbvHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
@@ -116,7 +197,7 @@ void BaseRenderer::CreateRtvAndDsvDescriptorHeaps()
 	cbvHeapDesc.NodeMask = 0;
 	ThrowIfFailed(md3dDevice->CreateDescriptorHeap(&cbvHeapDesc, IID_PPV_ARGS(&mSRVHeap)));
 
-	//´æ·ÅUIµÄShaderResourceView
+	//å­˜æ”¾UIçš„ShaderResourceView
 	//Create SrvHeap for MIGUI
 	D3D12_DESCRIPTOR_HEAP_DESC desc = {};
 	desc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
@@ -124,7 +205,7 @@ void BaseRenderer::CreateRtvAndDsvDescriptorHeaps()
 	desc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
 	ThrowIfFailed(md3dDevice->CreateDescriptorHeap(&desc, IID_PPV_ARGS(mMiGUISrvHeap.GetAddressOf())));
 
-	//´æ·ÅÉî¶ÈµÄDepthShaderView
+	//å­˜æ”¾æ·±åº¦çš„DepthShaderView
 	D3D12_DESCRIPTOR_HEAP_DESC dsvHeapDesc;
 	dsvHeapDesc.NumDescriptors = mDepthStencilBufferCount + mRenderTargetPool->GetDepthRenderTargetPoolSize();
 	dsvHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_DSV;
@@ -295,69 +376,11 @@ Renderer::~Renderer()
 
 bool Renderer::InitRenderer(class D3DApp* app)
 {
-	mhMainWnd = app->mhMainWnd;
-
-#if defined(DEBUG) || defined(_DEBUG) 
-	// Enable the D3D12 debug layer.
+	if (BaseRenderer::InitRenderer(app) == false)
 	{
-		ComPtr<ID3D12Debug> debugController;
-		ThrowIfFailed(D3D12GetDebugInterface(IID_PPV_ARGS(&debugController)));
-		debugController->EnableDebugLayer();
+		return false;
 	}
-#endif
-
-	//Create DXGIFactory
-	ThrowIfFailed(CreateDXGIFactory1(IID_PPV_ARGS(&mdxgiFactory)));
-
-	//Try to create hardware device
-	HRESULT hardwareResult = D3D12CreateDevice(
-		nullptr,             // default adapter
-		D3D_FEATURE_LEVEL_11_0,
-		IID_PPV_ARGS(&md3dDevice));
-
-	// FallBack to WARP device.
-	if (FAILED(hardwareResult))
-	{
-		ComPtr<IDXGIAdapter> pWarpAdapter;
-		ThrowIfFailed(mdxgiFactory->EnumWarpAdapter(IID_PPV_ARGS(&pWarpAdapter)));
-
-		ThrowIfFailed(D3D12CreateDevice(
-			pWarpAdapter.Get(),
-			D3D_FEATURE_LEVEL_11_0,
-			IID_PPV_ARGS(&md3dDevice)));
-	}
-
-	//Create fence
-	ThrowIfFailed(md3dDevice->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&mFence)));
-
-	//Get the descriptor size
-	mRtvDescriptorSize = md3dDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
-	mDsvDescriptorSize = md3dDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_DSV);
-	mCbvSrvUavDescriptorSize = md3dDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-
-	// Check 4X MSAA quality support for our back buffer format.
-	// All Direct3D 11 capable devices support 4X MSAA for all render 
-	// target formats, so we only need to check quality support.
-	D3D12_FEATURE_DATA_MULTISAMPLE_QUALITY_LEVELS msQualityLevels;
-	msQualityLevels.Format = mBackBufferFormat;
-	msQualityLevels.SampleCount = 4;
-	msQualityLevels.Flags = D3D12_MULTISAMPLE_QUALITY_LEVELS_FLAG_NONE;
-	msQualityLevels.NumQualityLevels = 0;
-	ThrowIfFailed(md3dDevice->CheckFeatureSupport(
-		D3D12_FEATURE_MULTISAMPLE_QUALITY_LEVELS,
-		&msQualityLevels,
-		sizeof(msQualityLevels)));
-
-	m4xMsaaQuality = msQualityLevels.NumQualityLevels;
-	assert(m4xMsaaQuality > 0 && "Unexpected MSAA quality level.");
-
-#ifdef _DEBUG
-	LogAdapters();
-#endif
-
-	CreateCommandObjects();
-	CreateSwapChain();
-
+	
 	//one HDR render target, one is ArrowDebug, one is IBLBRDF target
 	mRenderTargetPool->RigisterToRenderTargetPool<RenderTarget>(mHDRRendertarget, DXGI_FORMAT_R32G32B32A32_FLOAT, Color(0.8, 0.8, 1, 1));
 	mRenderTargetPool->RigisterToRenderTargetPool<RenderTarget>(mDebugArrowRendertarget, mBackBufferFormat, Color(0.8, 0.8, 1, 0));
@@ -444,7 +467,7 @@ void Renderer::OnResize()
 
 	mCurrBackBuffer = 0;
 
-	//Swap chin ÀïÃæ»á×Ô¼º´´½¨Resource
+	//Swap chin é‡Œé¢ä¼šè‡ªå·±åˆ›å»ºResource
 	for (UINT i = 0; i < SwapChainBufferCount; i++)
 	{
 		ThrowIfFailed(mSwapChain->GetBuffer(i, IID_PPV_ARGS(&mSwapChainBuffer[i])));
@@ -648,7 +671,7 @@ void Renderer::Draw(const GameTimer& gt)
 	mCommandList->ClearRenderTargetView(mHDRRendertarget->GetRTVDescriptorHandle(), mHDRRendertarget->GetClearData(), 0, nullptr);
 	mCommandList->ClearDepthStencilView(DepthStencilView(), D3D12_CLEAR_FLAG_DEPTH | D3D12_CLEAR_FLAG_STENCIL, 1.0f, 0, 0, nullptr);
 
-	//äÖÈ¾BasePass
+	//æ¸²æŸ“BasePass
 	D3D12_GPU_VIRTUAL_ADDRESS standardPassConstantViewAdress = passCB->GetGPUVirtualAddress();
 	DrawRenderItems(mCommandList.Get(), mRitemLayer[(int)EPassType::Opaque], standardPassConstantViewAdress);
 
@@ -679,7 +702,7 @@ void Renderer::Draw(const GameTimer& gt)
 		bDrawIBLToggle = false;
 	}
 
-//ÊÇ·ñ¿ªÆôDebugĞ¡´°¿Ú
+//æ˜¯å¦å¼€å¯Debugå°çª—å£
 #if 1
 	//Debug window pass
 	mDebugPass->SetWindowScaleAndCenter(Vector2(0.25, 0.25f), Vector2(mClientWidth - 300, mClientHeight - 300));
@@ -700,7 +723,7 @@ void Renderer::Draw(const GameTimer& gt)
 
 #endif
 
-//ÊÇ·ñ»æÖÆ×ø±êÏµ·½Ïòµ¼º½¼ıÍ·
+//æ˜¯å¦ç»˜åˆ¶åæ ‡ç³»æ–¹å‘å¯¼èˆªç®­å¤´
 #if 1
 	//DrawArrow
 	mdebugArrowPass->Draw(
@@ -954,6 +977,7 @@ void Renderer::LoadTextures()
 
 	mDebugIBLPassMaterial = new MaterialResource();
 	mDebugIBLPassMaterial->InitMaterial(md3dDevice.Get(), mCommandList.Get(), { mIBLBRDFTarget });
+	//mDebugIBLPassMaterial->InitMaterial(md3dDevice.Get(), mCommandList.Get(), { bricks.get() });
 
 	mMaterials.push_back(std::move(Mat1));
 	mMaterials.push_back(std::move(Mat2));
@@ -1155,7 +1179,7 @@ void Renderer::BuildRenderItems()
 		mAllRitems.push_back(std::move(ritem));
 	}
 
-	//ÓĞÉÁË¸ÎÊÌâËùÒÔÔİÊ±°ÑËü×¢ÊÍµô
+	//æœ‰é—ªçƒé—®é¢˜æ‰€ä»¥æš‚æ—¶æŠŠå®ƒæ³¨é‡Šæ‰
 	//mTestFBXSkinMesh = std::make_unique<SkeletonMesh>();
 	//mTestFBXSkinMesh->LoadSkeletonMesh(md3dDevice, mCommandList);
 	//{

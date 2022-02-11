@@ -1,9 +1,9 @@
-/*
+﻿/*
  #
  #  File        : inpaint.h
  #                ( C++ header file - CImg plug-in )
  #
- #  Copyright   : David Tschumperlé
+ #  Copyright   : David Tschumperl茅
  #
  #  License     : CeCILL v2.0
  #                ( http://www.cecill.info/licences/Licence_CeCILL_V2-en.html )
@@ -15,14 +15,14 @@
  #
  # "A Smarter Examplar-based Inpainting Algorithm using Local and Global Heuristics
  #  for more Geometric Coherence."
- # (M. Daisy, P. Buyssens, D. Tschumperlé, O. Lezoray).
+ # (M. Daisy, P. Buyssens, D. Tschumperl茅, O. Lezoray).
  # IEEE International Conference on Image Processing (ICIP'14), Paris/France, Oct. 2014
  #
  # and
  #
  # "A Fast Spatial Patch Blending Algorithm for Artefact Reduction in Pattern-based
  #  Image Inpainting."
- # (M. Daisy, D. Tschumperlé, O. Lezoray).
+ # (M. Daisy, D. Tschumperl茅, O. Lezoray).
  # SIGGRAPH Asia 2013 Technical Briefs, Hong-Kong, November 2013.
  #
  #  This software is governed by the CeCILL  license under French law and

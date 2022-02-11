@@ -1,4 +1,4 @@
-/*
+﻿/*
  #
  #  File        : bayer.h
  #                ( C++ header file - CImg plug-in )
@@ -6,7 +6,7 @@
  #  Description : CImg plugin that implements the conversion of a color image to a
  #                Bayer-coded matrix, and its reverse transform.
  #
- #  Copyright   : David Tschumperlé
+ #  Copyright   : David Tschumperl茅
  #                ( https://tschumperle.users.greyc.fr/ )
  #
  #  This software is governed by the CeCILL license under French law and
