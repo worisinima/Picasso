@@ -1,7 +1,7 @@
 ﻿
 #include "OnFramePass.h"
 #include "FrameResource.h"
-#include "Common/d3dUtil.h"
+#include "../Common/d3dUtil.h"
 #include <d3d12.h>
 #include "RenderTarget.h"
 
@@ -417,6 +417,8 @@ void OneFramePass::DrawMaterialToRendertarget(
 	ID3D12CommandAllocator* mDirectCmdListAlloc,
 	RenderTarget* destRT,
 	MaterialResource* mat,
+	UINT ViewportX,
+	UINT ViewportY,
 	const bool& bAlpha
 )
 {
@@ -435,8 +437,8 @@ void OneFramePass::DrawMaterialToRendertarget(
 
 	mScreenViewport.TopLeftX = c.x;
 	mScreenViewport.TopLeftY = c.y;
-	mScreenViewport.Width = static_cast<float>(destRT->GetWidth() * s.x);
-	mScreenViewport.Height = static_cast<float>(destRT->GetHeight() * s.y);
+	mScreenViewport.Width = static_cast<float>(ViewportX * s.x);
+	mScreenViewport.Height = static_cast<float>(ViewportY * s.y);
 	mScreenViewport.MinDepth = 0.0f;
 	mScreenViewport.MaxDepth = 1.0f;
 

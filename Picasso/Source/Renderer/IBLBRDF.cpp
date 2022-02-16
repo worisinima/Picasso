@@ -9,14 +9,19 @@ IBLBRDF::IBLBRDF()
 	mWindowCenter = Vector2(0, 0);
 	mWindowScale = Vector2(1, 1);
 }
+IBLBRDF::IBLBRDF(const string& ShaderFilePath, const Vector2& WindowCenter, const Vector2& WindowScale)
+	: ScreenPass(ShaderFilePath, WindowCenter, WindowScale)
+{
+
+}
 
 void IBLBRDF::BuildPSO(ID3D12GraphicsCommandList* mCommandList, ID3D12Device* md3dDevice, DXGI_FORMAT& mBackBufferFormat)
 {
-	//Buil PSO
+	//Build PSO
 	D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc;
 	ZeroMemory(&psoDesc, sizeof(D3D12_GRAPHICS_PIPELINE_STATE_DESC));
 	psoDesc.InputLayout = { mInputLayout.data(), (UINT)mInputLayout.size() };
-	psoDesc.pRootSignature = mRootSignature.Get();
+	psoDesc.pRootSignature = mRootSignatureA.Get();
 	psoDesc.VS =
 	{
 		reinterpret_cast<BYTE*>(mvsByteCode->GetBufferPointer()),
@@ -64,14 +69,8 @@ void IBLBRDF::BuildRootSignature(ID3D12GraphicsCommandList* mCommandList, ID3D12
 	ComPtr<ID3DBlob> signature;
 	ComPtr<ID3DBlob> error;
 
-	ThrowIfFailed(D3D12SerializeRootSignature(&rootSignatureDesc
-		, D3D_ROOT_SIGNATURE_VERSION_1
-		, &signature, &error));
-
-	ThrowIfFailed(md3dDevice->CreateRootSignature(0
-		, signature->GetBufferPointer()
-		, signature->GetBufferSize()
-		, IID_PPV_ARGS(&mRootSignature)));
+	ThrowIfFailed(D3D12SerializeRootSignature(&rootSignatureDesc, D3D_ROOT_SIGNATURE_VERSION_1, &signature, &error));
+	ThrowIfFailed(md3dDevice->CreateRootSignature(0, signature->GetBufferPointer(), signature->GetBufferSize(), IID_PPV_ARGS(&mRootSignatureA)));
 }
 
 bool IBLBRDF::Init(ID3D12GraphicsCommandList* mCommandList, ID3D12Device* md3dDevice, DXGI_FORMAT mBackBufferFormat)
@@ -86,7 +85,7 @@ bool IBLBRDF::Init(ID3D12GraphicsCommandList* mCommandList, ID3D12Device* md3dDe
 
 void IBLBRDF::Draw(ID3D12GraphicsCommandList* mCommandList, ID3D12CommandAllocator* mDirectCmdListAlloc, RenderTarget* destRT)
 {
-	mCommandList->SetGraphicsRootSignature(mRootSignature.Get());
+	mCommandList->SetGraphicsRootSignature(mRootSignatureA.Get());
 	mCommandList->SetPipelineState(mPSO.Get());
 
 	//SetViewport
@@ -123,5 +122,4 @@ void IBLBRDF::Draw(ID3D12GraphicsCommandList* mCommandList, ID3D12CommandAllocat
 
 	//EndRender
 	destRT->EndRender(mCommandList);
-
 }

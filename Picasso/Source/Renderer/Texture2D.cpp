@@ -1,6 +1,6 @@
 ﻿#include "Texture2D.h"
 #include "TextureLoader.h"
-#include "String/StringHelper.h"
+#include "../String/StringHelper.h"
 #include <comdef.h>
 
 HRESULT Texture2D::Init(
@@ -45,8 +45,8 @@ HRESULT Texture2D::Init(
 	}
 
 	mTargetFormat = Resource->GetDesc().Format;
-	mTargetWidth = Resource->GetDesc().Width;
-	mTargetHeight = Resource->GetDesc().Height;
+	mTargetWidth = (UINT)Resource->GetDesc().Width;
+	mTargetHeight = (UINT)Resource->GetDesc().Height;
 
 	return S_OK;
 }

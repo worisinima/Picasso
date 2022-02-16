@@ -66,7 +66,7 @@ namespace FileHelper
 	/*	CSIDL_BITBUCKET 回收站
 		CSIDL_CONTROLS 控制面板
 		CSIDL_DESKTOP Windows桌面desktop;
-		CSIDL_DESKTOPDIRECTORY desktop的目录；
+		CSIDL_DESKTOPDIRECTORY Desktop的目录;
 		CSIDL_DRIVES 我的电脑
 		CSIDL_FONTS 字体目录
 		CSIDL_NETHOOD 网上邻居

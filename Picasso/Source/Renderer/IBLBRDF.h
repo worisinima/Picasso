@@ -1,7 +1,7 @@
 
 #pragma once
 
-#include "Core/RenderCore.h"
+#include "ScreenPass/ScreenPass.h"
 
 class RenderTarget;
 class BackBufferRenderTarget;
@@ -14,6 +14,7 @@ class IBLBRDF : ScreenPass
 public:
 	
 	IBLBRDF();
+	IBLBRDF(const string& ShaderFilePath, const Vector2& WindowCenter, const Vector2& WindowScale);
 
 	virtual bool Init(
 		ID3D12GraphicsCommandList* mCommandList,

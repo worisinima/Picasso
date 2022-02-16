@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Core/RenderCore.h"
+#include "../Core/RenderCore.h"
 
 struct LightConstant
 {

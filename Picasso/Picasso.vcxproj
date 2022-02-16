@@ -116,7 +116,7 @@
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_DEBUG;_CONSOLE;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>false</ConformanceMode>
       <PreprocessToFile>false</PreprocessToFile>
       <AdditionalIncludeDirectories>$(ProjectDir)Source\Assimp\assimp-5.0.1\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
@@ -174,12 +174,7 @@
     <ClInclude Include="Source\Core\Math\FMathLib.h" />
     <ClInclude Include="Source\Core\RenderCore.h" />
     <ClInclude Include="Source\Core\Shader.h" />
-    <ClInclude Include="Source\CubeTexture.h" />
     <ClInclude Include="Source\D3DApp.h" />
-    <ClInclude Include="Source\DebugArrowPass.h" />
-    <ClInclude Include="Source\FileHelper.h" />
-    <ClInclude Include="Source\FrameResource.h" />
-    <ClInclude Include="Source\IBLBRDF.h" />
     <ClInclude Include="Source\ImGUI\imconfig.h" />
     <ClInclude Include="Source\ImGUI\imgui.h" />
     <ClInclude Include="Source\ImGUI\imgui_impl_dx12.h" />
@@ -188,24 +183,30 @@
     <ClInclude Include="Source\ImGUI\imstb_rectpack.h" />
     <ClInclude Include="Source\ImGUI\imstb_textedit.h" />
     <ClInclude Include="Source\ImGUI\imstb_truetype.h" />
-    <ClInclude Include="Source\Light.h" />
-    <ClInclude Include="Source\MathShowCase.h" />
-    <ClInclude Include="Source\OBJLoader.h" />
-    <ClInclude Include="Source\OnFramePass.h" />
     <ClInclude Include="Source\pch.h" />
-    <ClInclude Include="Source\Renderer.h" />
-    <ClInclude Include="Source\RenderTarget.h" />
-    <ClInclude Include="Source\RenderTargetPool.h" />
-    <ClInclude Include="Source\ShadowMapPass.h" />
+    <ClInclude Include="Source\Renderer\CubeTexture.h" />
+    <ClInclude Include="Source\Renderer\DebugArrowPass.h" />
+    <ClInclude Include="Source\Renderer\FileHelper.h" />
+    <ClInclude Include="Source\Renderer\FrameResource.h" />
+    <ClInclude Include="Source\Renderer\IBLBRDF.h" />
+    <ClInclude Include="Source\Renderer\Light.h" />
+    <ClInclude Include="Source\Renderer\MathShowCase.h" />
+    <ClInclude Include="Source\Renderer\OBJLoader.h" />
+    <ClInclude Include="Source\Renderer\OnFramePass.h" />
+    <ClInclude Include="Source\Renderer\Renderer.h" />
+    <ClInclude Include="Source\Renderer\RenderTarget.h" />
+    <ClInclude Include="Source\Renderer\RenderTargetPool.h" />
+    <ClInclude Include="Source\Renderer\ScreenPass\ScreenPass.h" />
+    <ClInclude Include="Source\Renderer\ShadowMapPass.h" />
+    <ClInclude Include="Source\Renderer\StaticMesh.h" />
+    <ClInclude Include="Source\Renderer\Texture2D.h" />
+    <ClInclude Include="Source\Renderer\TextureLoader.h" />
+    <ClInclude Include="Source\Renderer\Waves.h" />
     <ClInclude Include="Source\SkinMesh\Animation.h" />
     <ClInclude Include="Source\SkinMesh\LoadM3d.h" />
     <ClInclude Include="Source\SkinMesh\SkeletonMesh.h" />
     <ClInclude Include="Source\SkinMesh\SkinnedData.h" />
-    <ClInclude Include="Source\StaticMesh.h" />
     <ClInclude Include="Source\String\StringHelper.h" />
-    <ClInclude Include="Source\Texture2D.h" />
-    <ClInclude Include="Source\TextureLoader.h" />
-    <ClInclude Include="Source\Waves.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Source\Common\Camera.cpp" />
@@ -219,32 +220,34 @@
     <ClCompile Include="Source\Core\Math\FMathLib.cpp" />
     <ClCompile Include="Source\Core\RenderCore.cpp" />
     <ClCompile Include="Source\Core\Shader.cpp" />
-    <ClCompile Include="Source\CubeTexture.cpp" />
     <ClCompile Include="Source\D3DApp.cpp" />
-    <ClCompile Include="Source\DebugArrowPass.cpp" />
-    <ClCompile Include="Source\FrameResource.cpp" />
-    <ClCompile Include="Source\IBLBRDF.cpp" />
     <ClCompile Include="Source\ImGUI\imgui.cpp" />
     <ClCompile Include="Source\ImGUI\imgui_draw.cpp" />
     <ClCompile Include="Source\ImGUI\imgui_impl_dx12.cpp" />
     <ClCompile Include="Source\ImGUI\imgui_impl_win32.cpp" />
     <ClCompile Include="Source\ImGUI\imgui_widgets.cpp" />
-    <ClCompile Include="Source\Light.cpp" />
     <ClCompile Include="Source\Main.cpp" />
-    <ClCompile Include="Source\OneFramePass.cpp" />
     <ClCompile Include="Source\pch.cpp" />
-    <ClCompile Include="Source\Renderer.cpp" />
-    <ClCompile Include="Source\RenderTarget.cpp" />
-    <ClCompile Include="Source\RenderTargetPool.cpp" />
-    <ClCompile Include="Source\ShadowMapPass.cpp" />
+    <ClCompile Include="Source\Renderer\CubeTexture.cpp" />
+    <ClCompile Include="Source\Renderer\DebugArrowPass.cpp" />
+    <ClCompile Include="Source\Renderer\FrameResource.cpp" />
+    <ClCompile Include="Source\Renderer\IBLBRDF.cpp" />
+    <ClCompile Include="Source\Renderer\Light.cpp" />
+    <ClCompile Include="Source\Renderer\OneFramePass.cpp" />
+    <ClCompile Include="Source\Renderer\Renderer.cpp" />
+    <ClCompile Include="Source\Renderer\RenderTarget.cpp" />
+    <ClCompile Include="Source\Renderer\RenderTargetPool.cpp" />
+    <ClCompile Include="Source\Renderer\ScreenPass\ScreenPass.cpp" />
+    <ClCompile Include="Source\Renderer\ShadowMapPass.cpp" />
+    <ClCompile Include="Source\Renderer\SimpleRenderer.cpp" />
+    <ClCompile Include="Source\Renderer\StaticMesh.cpp" />
+    <ClCompile Include="Source\Renderer\Texture2D.cpp" />
+    <ClCompile Include="Source\Renderer\Waves.cpp" />
     <ClCompile Include="Source\SkinMesh\Animation.cpp" />
     <ClCompile Include="Source\SkinMesh\LoadM3d.cpp" />
     <ClCompile Include="Source\SkinMesh\SkeletonMesh.cpp" />
     <ClCompile Include="Source\SkinMesh\SkinnedData.cpp" />
-    <ClCompile Include="Source\StaticMesh.cpp" />
     <ClCompile Include="Source\String\StringHelper.cpp" />
-    <ClCompile Include="Source\Texture2D.cpp" />
-    <ClCompile Include="Source\Waves.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="imgui.ini" />
@@ -264,6 +267,12 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
     </FxCompile>
     <FxCompile Include="Shaders\PositionOnly.hlsl">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+    </FxCompile>
+    <FxCompile Include="Shaders\ScreenPassTest.hlsl">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+    </FxCompile>
+    <FxCompile Include="Shaders\ToneMapping.hlsl">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
     </FxCompile>
   </ItemGroup>

@@ -7,7 +7,7 @@
 #include <assimp\mesh.h>
 
 #include "../Core/Core.h"
-#include "../FrameResource.h"
+#include "../Renderer/FrameResource.h"
 #include "../String/StringHelper.h"
 #include "LoadM3d.h"
 #include "../Common/GameTimer.h"

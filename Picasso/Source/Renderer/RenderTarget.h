@@ -15,7 +15,7 @@ public:
 		ID3D12GraphicsCommandList* cmdList,
 		UINT width,
 		UINT height
-		);
+	);
 
 	virtual HRESULT CreateSRV(
 		ID3D12Device* device,
@@ -65,6 +65,11 @@ protected:
 
 	CD3DX12_CPU_DESCRIPTOR_HANDLE mRTVDescriptorHandle;
 	CD3DX12_CPU_DESCRIPTOR_HANDLE mDSVDescriptorHandle;
+
+	//Save the render target stored heap
+	ID3D12DescriptorHeap* mSrvHeap;
+	ID3D12DescriptorHeap* mRtvHeap;
+	ID3D12DescriptorHeap* mDsvHeap;
 };
 
 
@@ -128,6 +133,5 @@ public:
 	virtual void BeginRender(ID3D12GraphicsCommandList* commandList) override;
 	//结束渲染，把这个target转换为ShaderResource
 	virtual void EndRender(ID3D12GraphicsCommandList* commandList) override;
-
 };
 

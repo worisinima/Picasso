@@ -1,11 +1,13 @@
 #pragma once
 
-#include "Common/d3dUtil.h"
+#include "../Common/d3dUtil.h"
+#include <string>
 
-class CubeTexture : public Texture
+class Texture2D : public Texture
 {
 public:
-	HRESULT Init(
+	
+	HRESULT Texture2D::Init(
 		ID3D12Device* device,
 		ID3D12GraphicsCommandList* cmdList,
 		const char* szFileName
@@ -22,10 +24,14 @@ public:
 	CD3DX12_CPU_DESCRIPTOR_HANDLE& GetCPUSRVDescriptorHandle() { return mSRVDescriptorCPUHandle; }
 	CD3DX12_GPU_DESCRIPTOR_HANDLE& GetGPUSRVDescriptorHandle() { return mSRVDescriptorGPUHandle; }
 
+	int GetWidth() { return mTargetWidth; }
+	int GetHeight() { return mTargetHeight; }
 	DXGI_FORMAT GetFormat() { return mTargetFormat; }
 
 protected:
 
+	UINT mTargetWidth;
+	UINT mTargetHeight;
 	DXGI_FORMAT mTargetFormat;
 	std::string mTextureName;
 

@@ -1,12 +1,22 @@
 ﻿#pragma once
 
-#include "Core/RenderCore.h"
+#include "../Core/RenderCore.h"
 
 class RenderTarget;
 class BackBufferRenderTarget;
 
 using namespace DirectX;
 using namespace FMathLib;
+
+#ifdef ReleaseRenderPass
+#undef ReleaseRenderPass
+#endif
+#define ReleaseRenderPass(RenderPass) \
+if (RenderPass != nullptr)\
+{\
+	delete(RenderPass);\
+	RenderPass = nullptr;\
+}
 
 class OneFramePass
 {
@@ -36,6 +46,8 @@ public:
 		ID3D12CommandAllocator* mDirectCmdListAlloc,
 		RenderTarget* destRT,
 		MaterialResource* mat,
+		UINT ViewportX,
+		UINT ViewportY,
 		const bool& bAlpha = false
 	);
 

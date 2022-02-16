@@ -39,7 +39,7 @@ D3DApp::D3DApp(HINSTANCE hInstance)
 	assert(mApp == nullptr);
 		mApp = this;
 
-	GraphicRender = new Renderer(mClientWidth, mClientHeight);
+	GraphicRender = new SimpleRenderer(mClientWidth, mClientHeight);
 }
 
 D3DApp::~D3DApp()
@@ -529,5 +529,5 @@ void D3DApp::DrawUIContent()
 		ImGui::End();
 	}
 
-	memcpy(&GraphicRender->mSimpleLight->mLightData[0].mLightColor, &clear_color, sizeof(float) * 3);
+	//memcpy(&GraphicRender->mSimpleLight->mLightData[0].mLightColor, &clear_color, sizeof(float) * 3);
 }

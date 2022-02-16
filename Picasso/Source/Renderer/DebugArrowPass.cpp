@@ -1,7 +1,7 @@
 ﻿
 #include "DebugArrowPass.h"
 #include "FrameResource.h"
-#include "Common/d3dUtil.h"
+#include "../Common/d3dUtil.h"
 #include <d3d12.h>
 #include "RenderTarget.h"
 #include "StaticMesh.h"

@@ -1,10 +1,10 @@
 #pragma once
 
-#include "Core/RenderCore.h"
-#include "Common/Camera.h"
-#include "Common/GameTimer.h"
-#include "Common/d3dUtil.h"
-#include "Common/UploadBuffer.h"
+#include "../Core/RenderCore.h"
+#include "../Common/Camera.h"
+#include "../Common/GameTimer.h"
+#include "../Common/d3dUtil.h"
+#include "../Common/UploadBuffer.h"
 #include "FrameResource.h"
 
 using namespace DirectX;

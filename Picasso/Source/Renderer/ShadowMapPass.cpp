@@ -1,6 +1,6 @@
 ﻿#include "ShadowMapPass.h"
 #include "RenderTarget.h"
-#include "Core/RenderCore.h"
+#include "../Core/RenderCore.h"
 
 using Microsoft::WRL::ComPtr;
 using namespace std;

@@ -7,15 +7,15 @@
 
 #include <wrl.h>
 #include <d3d11_1.h>
-#include "Common/d3dx12.h"
+#include "../Common/d3dx12.h"
 #include <stdint.h>
-#include "Common/d3dUtil.h"
+#include "../Common/d3dUtil.h"
 
 #pragma warning(push)
 #pragma warning(disable : 4005)
 
 //CImage
-#include "CImage/CImg.h"
+#include "../CImage/CImg.h"
 using namespace cimg_library;
 using namespace std;
 using namespace Microsoft::WRL;

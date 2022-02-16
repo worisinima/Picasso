@@ -34,6 +34,12 @@
     <Filter Include="Source\SkinMesh">
       <UniqueIdentifier>{1a180dfe-6569-4bca-a292-a94778f832db}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source\Renderer">
+      <UniqueIdentifier>{c3ddbc2e-c824-43ef-a1cc-d90047139ba8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Renderer\ScreenPass">
+      <UniqueIdentifier>{fa05ab8e-8bcb-4b05-8ffc-2ce9106926c6}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="Shaders\color.hlsl">
@@ -49,6 +55,12 @@
       <Filter>Shaders</Filter>
     </FxCompile>
     <FxCompile Include="Shaders\PositionOnly.hlsl">
+      <Filter>Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="Shaders\ToneMapping.hlsl">
+      <Filter>Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="Shaders\ScreenPassTest.hlsl">
       <Filter>Shaders</Filter>
     </FxCompile>
   </ItemGroup>
@@ -164,62 +176,8 @@
     <ClInclude Include="Source\String\StringHelper.h">
       <Filter>Source\String</Filter>
     </ClInclude>
-    <ClInclude Include="Source\D3DApp.h">
-      <Filter>Source</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\FileHelper.h">
-      <Filter>Source</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\FrameResource.h">
-      <Filter>Source</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\MathShowCase.h">
-      <Filter>Source</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\OBJLoader.h">
-      <Filter>Source</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\OnFramePass.h">
-      <Filter>Source</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Renderer.h">
-      <Filter>Source</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\RenderTarget.h">
-      <Filter>Source</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\RenderTargetPool.h">
-      <Filter>Source</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\ShadowMapPass.h">
-      <Filter>Source</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\StaticMesh.h">
-      <Filter>Source</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Texture2D.h">
-      <Filter>Source</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\TextureLoader.h">
-      <Filter>Source</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Waves.h">
-      <Filter>Source</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\CubeTexture.h">
-      <Filter>Source</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\DebugArrowPass.h">
-      <Filter>Source</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\pch.h">
-      <Filter>Source</Filter>
-    </ClInclude>
     <ClInclude Include="Source\Core\Math\FMathLib.h">
       <Filter>Source\Core\Math</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\IBLBRDF.h">
-      <Filter>Source</Filter>
     </ClInclude>
     <ClInclude Include="Source\SkinMesh\SkeletonMesh.h">
       <Filter>Source\SkinMesh</Filter>
@@ -239,8 +197,65 @@
     <ClInclude Include="Source\Core\Shader.h">
       <Filter>Source\Core</Filter>
     </ClInclude>
-    <ClInclude Include="Source\Light.h">
+    <ClInclude Include="Source\D3DApp.h">
       <Filter>Source</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Renderer\CubeTexture.h">
+      <Filter>Source\Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Renderer\DebugArrowPass.h">
+      <Filter>Source\Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Renderer\FileHelper.h">
+      <Filter>Source\Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Renderer\FrameResource.h">
+      <Filter>Source\Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Renderer\IBLBRDF.h">
+      <Filter>Source\Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Renderer\Light.h">
+      <Filter>Source\Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Renderer\MathShowCase.h">
+      <Filter>Source\Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Renderer\OBJLoader.h">
+      <Filter>Source\Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Renderer\OnFramePass.h">
+      <Filter>Source\Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Renderer\Renderer.h">
+      <Filter>Source\Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Renderer\RenderTarget.h">
+      <Filter>Source\Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Renderer\RenderTargetPool.h">
+      <Filter>Source\Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Renderer\ShadowMapPass.h">
+      <Filter>Source\Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Renderer\StaticMesh.h">
+      <Filter>Source\Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Renderer\Texture2D.h">
+      <Filter>Source\Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Renderer\TextureLoader.h">
+      <Filter>Source\Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Renderer\Waves.h">
+      <Filter>Source\Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\pch.h">
+      <Filter>Source</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Renderer\ScreenPass\ScreenPass.h">
+      <Filter>Source\Renderer\ScreenPass</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -286,53 +301,8 @@
     <ClCompile Include="Source\String\StringHelper.cpp">
       <Filter>Source\String</Filter>
     </ClCompile>
-    <ClCompile Include="Source\D3DApp.cpp">
-      <Filter>Source</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\FrameResource.cpp">
-      <Filter>Source</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Main.cpp">
-      <Filter>Source</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\OneFramePass.cpp">
-      <Filter>Source</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Renderer.cpp">
-      <Filter>Source</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\RenderTarget.cpp">
-      <Filter>Source</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\RenderTargetPool.cpp">
-      <Filter>Source</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\ShadowMapPass.cpp">
-      <Filter>Source</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\StaticMesh.cpp">
-      <Filter>Source</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Texture2D.cpp">
-      <Filter>Source</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Waves.cpp">
-      <Filter>Source</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\CubeTexture.cpp">
-      <Filter>Source</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\DebugArrowPass.cpp">
-      <Filter>Source</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\pch.cpp">
-      <Filter>Source</Filter>
-    </ClCompile>
     <ClCompile Include="Source\Core\Math\FMathLib.cpp">
       <Filter>Source\Core\Math</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\IBLBRDF.cpp">
-      <Filter>Source</Filter>
     </ClCompile>
     <ClCompile Include="Source\SkinMesh\SkeletonMesh.cpp">
       <Filter>Source\SkinMesh</Filter>
@@ -352,8 +322,59 @@
     <ClCompile Include="Source\Core\Shader.cpp">
       <Filter>Source\Core</Filter>
     </ClCompile>
-    <ClCompile Include="Source\Light.cpp">
+    <ClCompile Include="Source\Renderer\SimpleRenderer.cpp">
+      <Filter>Source\Renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\D3DApp.cpp">
       <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Renderer\CubeTexture.cpp">
+      <Filter>Source\Renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Renderer\DebugArrowPass.cpp">
+      <Filter>Source\Renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Renderer\FrameResource.cpp">
+      <Filter>Source\Renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Renderer\IBLBRDF.cpp">
+      <Filter>Source\Renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Renderer\Light.cpp">
+      <Filter>Source\Renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Renderer\OneFramePass.cpp">
+      <Filter>Source\Renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Renderer\Renderer.cpp">
+      <Filter>Source\Renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Renderer\RenderTarget.cpp">
+      <Filter>Source\Renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Renderer\RenderTargetPool.cpp">
+      <Filter>Source\Renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Renderer\ShadowMapPass.cpp">
+      <Filter>Source\Renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Renderer\StaticMesh.cpp">
+      <Filter>Source\Renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Renderer\Texture2D.cpp">
+      <Filter>Source\Renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Renderer\Waves.cpp">
+      <Filter>Source\Renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Main.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\pch.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Renderer\ScreenPass\ScreenPass.cpp">
+      <Filter>Source\Renderer\ScreenPass</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

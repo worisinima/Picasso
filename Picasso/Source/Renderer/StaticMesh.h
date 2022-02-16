@@ -3,7 +3,7 @@
 #include <string>
 #include <vector>
 #include "FrameResource.h"
-#include "Common/d3dUtil.h"
+#include "../Common/d3dUtil.h"
 
 using namespace DirectX;
 using namespace DirectX::PackedVector;

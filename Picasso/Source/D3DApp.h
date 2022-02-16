@@ -1,6 +1,6 @@
 ﻿#pragma once
 
-#include "Renderer.h"
+#include "Renderer/Renderer.h"
 
 class D3DApp
 {
@@ -48,7 +48,7 @@ public:
 private:
 
 	//Renderer of this app
-	Renderer* GraphicRender;
+	SimpleRenderer* GraphicRender;
 
 	GameTimer mTimer;
 	WNDCLASSEX wc;

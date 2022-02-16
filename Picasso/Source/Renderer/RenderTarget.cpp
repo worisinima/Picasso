@@ -82,6 +82,7 @@ HRESULT RenderTarget::CreateSRV(ID3D12Device* device, ID3D12GraphicsCommandList*
 	mSRVDescriptorCPUHandle = srvDescriptorCPUHandle;
 	//GPU SRV Handle
 	mSRVDescriptorGPUHandle = srvDescriptorGPUHandle;
+	mSrvHeap = srvHeap;
 
 	return S_OK;
 }
@@ -96,6 +97,7 @@ HRESULT RenderTarget::CreateRTV(ID3D12Device* device, ID3D12GraphicsCommandList*
 
 	//CPU RTV Handle
 	mRTVDescriptorHandle = rtvDescriptorHandle;
+	mRtvHeap = rtvHeap;
 
 	return S_OK;
 }
@@ -225,11 +227,6 @@ HRESULT DepthMapRenderTarget::Init(
 	optClear.DepthStencil.Depth = 1.0f;
 	optClear.DepthStencil.Stencil = 0;
 
-	//默认堆
-	D3D12_HEAP_PROPERTIES heap;
-	memset(&heap, 0, sizeof(heap));
-	heap.Type = D3D12_HEAP_TYPE_DEFAULT;
-
 	ThrowIfFailed(device->CreateCommittedResource(
 		&CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT),
 		D3D12_HEAP_FLAG_NONE,
@@ -243,7 +240,6 @@ HRESULT DepthMapRenderTarget::Init(
 
 HRESULT DepthMapRenderTarget::CreateSRV(ID3D12Device* device, ID3D12GraphicsCommandList* cmdList, ID3D12DescriptorHeap* srvHeap, const int& srvHeapIndex)
 {
-
 	UINT cbvSrvDescriptorSize = device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 
 	CD3DX12_CPU_DESCRIPTOR_HANDLE srvDescriptorCPUHandle(srvHeap->GetCPUDescriptorHandleForHeapStart());
@@ -251,7 +247,7 @@ HRESULT DepthMapRenderTarget::CreateSRV(ID3D12Device* device, ID3D12GraphicsComm
 
 	CD3DX12_GPU_DESCRIPTOR_HANDLE srvDescriptorGPUHandle(srvHeap->GetGPUDescriptorHandleForHeapStart());
 	srvDescriptorGPUHandle.Offset(srvHeapIndex, cbvSrvDescriptorSize);
-
+	
 	// Create SRV to resource so we can sample the shadow map in a shader program.
 	D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
 	srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
@@ -262,6 +258,8 @@ HRESULT DepthMapRenderTarget::CreateSRV(ID3D12Device* device, ID3D12GraphicsComm
 	srvDesc.Texture2D.ResourceMinLODClamp = 0.0f;
 	srvDesc.Texture2D.PlaneSlice = 0;
 	device->CreateShaderResourceView(Texture2D::Resource.Get(), &srvDesc, srvDescriptorCPUHandle);
+
+	mSrvHeap = srvHeap;
 
 	return S_OK;
 }
@@ -283,6 +281,7 @@ HRESULT DepthMapRenderTarget::CreateDSV(ID3D12Device* device, ID3D12GraphicsComm
 
 	//DSV Handle
 	mDSVDescriptorHandle = dsvDescriptorCPUHandle;
+	mDsvHeap = dsvHeap;
 
 	return S_OK;
 }

@@ -1,12 +1,11 @@
 
 #include "D3DApp.h"
 #include "Core/Core.h"
-
 #include "SkinMesh/SkeletonMesh.h"
 
 void InitAllGlobalData(D3DApp& theApp)
 {
-	//Begin Initialize Init All App Global parameters herer
+	//Begin Initialize Init All App Global parameters Here
 
 	FileHelper::GetProjectPath(gSystemPath);
 	gAppWindowWidth = theApp.GetClientWidth();

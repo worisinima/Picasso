@@ -1,9 +1,9 @@
 #pragma once
 
-#include "Core/RenderCore.h"
-#include "Common/d3dUtil.h"
-#include "Common/GameTimer.h"
-#include "Common/Camera.h"
+#include "../Core/RenderCore.h"
+#include "../Common/d3dUtil.h"
+#include "../Common/GameTimer.h"
+#include "../Common/Camera.h"
 #include "FrameResource.h"
 
 class ShadowMapPass

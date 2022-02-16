@@ -21,4 +21,9 @@ public:
 	void Split(const std::string& s, std::vector<std::string>& OutStrings, const std::string& delim);
 	
 	std::string Remove(std::string& s, const std::string& removeString);
+
+	//wstring=>string
+	std::string WStringToString(const std::wstring& ws);
+	// string => wstring
+	std::wstring StringToWString(const std::string& s);
 };

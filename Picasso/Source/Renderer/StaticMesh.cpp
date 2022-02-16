@@ -1,8 +1,8 @@
 ﻿#include "StaticMesh.h"
 #include "OBJLoader.h"
 #include "FileHelper.h"
-#include "Core/Core.h"
-#include "String/StringHelper.h"
+#include "../Core/Core.h"
+#include "../String/StringHelper.h"
 #include <fstream>
 
 #include <assimp\Importer.hpp>

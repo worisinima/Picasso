@@ -1,10 +1,10 @@
 ﻿
 #include "Renderer.h"
 #include <WindowsX.h>
-#include "D3DApp.h"
+#include "../D3DApp.h"
 #include <WindowsX.h>
 #include "StaticMesh.h"
-#include "SkinMesh/SkeletonMesh.h"
+#include "../SkinMesh/SkeletonMesh.h"
 
 #include "OnFramePass.h"
 #include "DebugArrowPass.h"
@@ -21,15 +21,7 @@ using namespace DirectX;
 using namespace FMathLib;
 using namespace DirectX::PackedVector;
 
-#ifdef ReleaseRenderPass
-	#undef ReleaseRenderPass
-#endif
-#define ReleaseRenderPass(RenderPass) \
-if (RenderPass != nullptr)\
-{\
-	delete(RenderPass);\
-	RenderPass = nullptr;\
-}
+#define DrawBasePass 1
 
 BaseRenderer::BaseRenderer(const int& clientWidth, const int& clientHeight)
 {
@@ -82,10 +74,13 @@ bool BaseRenderer::InitRenderer(class D3DApp* app)
 	//Create fence
 	ThrowIfFailed(md3dDevice->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&mFence)));
 
+	// Get the increment size of a descriptor in this heap type.  This is hardware specific, 
+	// so we have to query this information.
 	//Get the descriptor size
 	mRtvDescriptorSize = md3dDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
 	mDsvDescriptorSize = md3dDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_DSV);
 	mCbvSrvUavDescriptorSize = md3dDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+	mCbvSrvDescriptorSize = md3dDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 
 	// Check 4X MSAA quality support for our back buffer format.
 	// All Direct3D 11 capable devices support 4X MSAA for all render 
@@ -177,41 +172,6 @@ void BaseRenderer::CreateSwapChain()
 		mCommandQueue.Get(),
 		&sd,
 		mSwapChain.GetAddressOf()));
-}
-
-void BaseRenderer::CreateRtvAndDsvDescriptorHeaps()
-{
-	//存放Render TargetView
-	D3D12_DESCRIPTOR_HEAP_DESC rtvHeapDesc;
-	rtvHeapDesc.NumDescriptors = SwapChainBufferCount + mRenderTargetPool->GetRenderTargetPoolSize();
-	rtvHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_RTV;
-	rtvHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
-	rtvHeapDesc.NodeMask = 0;
-	ThrowIfFailed(md3dDevice->CreateDescriptorHeap(&rtvHeapDesc, IID_PPV_ARGS(mRtvHeap.GetAddressOf())));
-
-	//存放渲染目标的ShaderResourceView
-	D3D12_DESCRIPTOR_HEAP_DESC cbvHeapDesc;
-	cbvHeapDesc.NumDescriptors = SwapChainBufferCount + mRenderTargetPool->GetRenderTargetPoolSize();
-	cbvHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
-	cbvHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
-	cbvHeapDesc.NodeMask = 0;
-	ThrowIfFailed(md3dDevice->CreateDescriptorHeap(&cbvHeapDesc, IID_PPV_ARGS(&mSRVHeap)));
-
-	//存放UI的ShaderResourceView
-	//Create SrvHeap for MIGUI
-	D3D12_DESCRIPTOR_HEAP_DESC desc = {};
-	desc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
-	desc.NumDescriptors = SwapChainBufferCount;
-	desc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
-	ThrowIfFailed(md3dDevice->CreateDescriptorHeap(&desc, IID_PPV_ARGS(mMiGUISrvHeap.GetAddressOf())));
-
-	//存放深度的DepthShaderView
-	D3D12_DESCRIPTOR_HEAP_DESC dsvHeapDesc;
-	dsvHeapDesc.NumDescriptors = mDepthStencilBufferCount + mRenderTargetPool->GetDepthRenderTargetPoolSize();
-	dsvHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_DSV;
-	dsvHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
-	dsvHeapDesc.NodeMask = 0;
-	ThrowIfFailed(md3dDevice->CreateDescriptorHeap(&dsvHeapDesc, IID_PPV_ARGS(mDsvHeap.GetAddressOf())));
 }
 
 void BaseRenderer::FlushCommandQueue()
@@ -325,16 +285,30 @@ ID3D12Resource* BaseRenderer::CurrentBackBuffer()const
 D3D12_CPU_DESCRIPTOR_HANDLE BaseRenderer::CurrentBackBufferView()const
 {
 	return CD3DX12_CPU_DESCRIPTOR_HANDLE(
-		mRtvHeap->GetCPUDescriptorHandleForHeapStart(),
+		mRenderTargetPool->mRtvHeap->GetCPUDescriptorHandleForHeapStart(),
 		mCurrBackBuffer,
 		mRtvDescriptorSize);
 }
 
 D3D12_CPU_DESCRIPTOR_HANDLE BaseRenderer::DepthStencilView()const
 {
-	return mDsvHeap->GetCPUDescriptorHandleForHeapStart();
+	return mRenderTargetPool->mDsvHeap->GetCPUDescriptorHandleForHeapStart();
 }
 
+
+void BaseRenderer::BuildFrameResources()
+{
+	for (int i = 0; i < gNumFrameResources; ++i)
+	{
+		mFrameResources.push_back(std::make_unique<FrameResource>
+		(
+			md3dDevice.Get(),
+			0,
+			0,
+			0
+		));
+	}
+}
 
 
 
@@ -382,41 +356,67 @@ bool Renderer::InitRenderer(class D3DApp* app)
 	}
 	
 	//one HDR render target, one is ArrowDebug, one is IBLBRDF target
-	mRenderTargetPool->RigisterToRenderTargetPool<RenderTarget>(mHDRRendertarget, DXGI_FORMAT_R32G32B32A32_FLOAT, Color(0.8, 0.8, 1, 1));
-	mRenderTargetPool->RigisterToRenderTargetPool<RenderTarget>(mDebugArrowRendertarget, mBackBufferFormat, Color(0.8, 0.8, 1, 0));
-	mRenderTargetPool->RigisterToRenderTargetPool<RenderTarget>(mIBLBRDFTarget, DXGI_FORMAT_R32G32B32A32_FLOAT, Color(0, 0, 0, 1));
-	mRenderTargetPool->RigisterToRenderTargetPool<DepthMapRenderTarget>(mShadowMap);
+	for (UINT i = 0; i < SwapChainBufferCount; i++)
+	{
+		ThrowIfFailed(mSwapChain->GetBuffer(i, IID_PPV_ARGS(&mSwapChainBuffer[i])));
+		mRenderTargetPool->RigisterBackBufferToRenderTargetPool(mBackBufferRendertarget[i], mBackBufferFormat, Color(1, 1, 1, 1), mSwapChainBuffer[i]);
+	}
+	mRenderTargetPool->RigisterDepthTargetToRenderTargetPool<DepthMapRenderTarget>(mDepthStencilRendertarget, mClientWidth, mClientHeight);
+	mRenderTargetPool->RigisterToRenderTargetPool<RenderTarget>(mHDRRendertarget, mClientWidth, mClientHeight, DXGI_FORMAT_R32G32B32A32_FLOAT, Color(0.8, 0.8, 1, 1));
+	mRenderTargetPool->RigisterToRenderTargetPool<RenderTarget>(mDebugArrowRendertarget, 512, 512, mBackBufferFormat, Color(0.8, 0.8, 1, 0));
+	mRenderTargetPool->RigisterToRenderTargetPool<RenderTarget>(mIBLBRDFTarget, 1024, 1024, DXGI_FORMAT_R32G32B32A32_FLOAT, Color(0, 0, 0, 1));
+	mRenderTargetPool->RigisterDepthTargetToRenderTargetPool<DepthMapRenderTarget>(mShadowMap, 4096, 4096);
 
-	CreateRtvAndDsvDescriptorHeaps();
+	mRenderTargetPool->CreateRtvAndDsvDescriptorHeaps(md3dDevice.Get(), mCommandList.Get());
+
+	//Shadow map
+	mShadowMap->Init(md3dDevice.Get(), mCommandList.Get(), 4096, 4096);
+	int mShadowMapDsvindex = mRenderTargetPool->GetRenderTarget_mDsvHeap_HeapIndex(mShadowMap);
+	mShadowMap->CreateDSV(md3dDevice.Get(), mCommandList.Get(), mRenderTargetPool->mDsvHeap.Get(), mShadowMapDsvindex);
+
+	mIBLBRDFTarget->Init(md3dDevice.Get(), mCommandList.Get(), 1024, 1024);
+	int mShadowMapSrvRtvIndex = mRenderTargetPool->GetRenderTarget_mRtvHeapAndmSrvHeap_HeapIndex(mIBLBRDFTarget);
+	mIBLBRDFTarget->CreateSRV(md3dDevice.Get(), mCommandList.Get(), mRenderTargetPool->mSrvHeap.Get(), mShadowMapSrvRtvIndex);
+	mIBLBRDFTarget->CreateRTV(md3dDevice.Get(), mCommandList.Get(), mRenderTargetPool->mRtvHeap.Get(), mShadowMapSrvRtvIndex);
+
+	//存放UI的ShaderResourceView
+	//Create SrvHeap for MIGUI
+	D3D12_DESCRIPTOR_HEAP_DESC desc = {};
+	desc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
+	desc.NumDescriptors = SwapChainBufferCount;
+	desc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
+	ThrowIfFailed(md3dDevice->CreateDescriptorHeap(&desc, IID_PPV_ARGS(mMiGUISrvHeap.GetAddressOf())));
 
 	// Reset the command list to prep for initialization commands.
 	ThrowIfFailed(mCommandList->Reset(mDirectCmdListAlloc.Get(), nullptr));
 
-	// Get the increment size of a descriptor in this heap type.  This is hardware specific, 
-	// so we have to query this information.
-	mCbvSrvDescriptorSize = md3dDevice->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-
 	mCamera.LookAt(DirectX::XMVectorSet(-8.0f, 8.0f, 8.0f, 1), DirectX::XMVectorSet(0, 0, 0, 1), XMVectorSet(0, 0, 1, 0));
 
+	
+#if DrawBasePass
 	BuildShadersAndInputLayout();
-
 	LoadTextures();
 	BuildRenderItems();
 	BuildFrameResources();
+	BuildLightData();
+#else
+	BuildFrameResources();
+#endif
 
 	oneFramePass->InitOneFramePass(mCommandList.Get(), md3dDevice.Get(), mBackBufferFormat);
 	mDebugPass->InitOneFramePass(mCommandList.Get(), md3dDevice.Get(), mBackBufferFormat);
 	mdebugArrowPass->InitOneFramePass(md3dDevice, mCommandList, mBackBufferFormat);
 	mIBLBRDFPass->Init(mCommandList.Get(), md3dDevice.Get(), mIBLBRDFTarget->GetFormat());
 	mShadowMapPass->InitShadowMapPass(md3dDevice, mCommandList, mShadowMap, 3);
-
-	BuildLightData();
+	mDebugPassMaterial = new MaterialResource();
+	mDebugPassMaterial->InitMaterial(md3dDevice.Get(), mCommandList.Get(), { mShadowMap });
+	mDebugIBLPassMaterial = new MaterialResource();
+	mDebugIBLPassMaterial->InitMaterial(md3dDevice.Get(), mCommandList.Get(), { mIBLBRDFTarget });
 
 	// Execute the initialization commands.
 	ThrowIfFailed(mCommandList->Close());
 	ID3D12CommandList* cmdsLists[] = { mCommandList.Get() };
 	mCommandQueue->ExecuteCommandLists(_countof(cmdsLists), cmdsLists);
-
 	// Wait until initialization is complete.
 	FlushCommandQueue();
 
@@ -478,20 +478,16 @@ void Renderer::OnResize()
 				0, 
 				0
 				));
-		mBackBufferRendertarget[i]->CreateSRV(md3dDevice.Get(), mCommandList.Get(), mSRVHeap.Get(), i);
-		mBackBufferRendertarget[i]->CreateRTV(md3dDevice.Get(), mCommandList.Get(), mRtvHeap.Get(), i);
+		mBackBufferRendertarget[i]->CreateSRV(md3dDevice.Get(), mCommandList.Get(), mRenderTargetPool->mSrvHeap.Get(), i);
+		mBackBufferRendertarget[i]->CreateRTV(md3dDevice.Get(), mCommandList.Get(), mRenderTargetPool->mRtvHeap.Get(), i);
 	}
+
 	//Create HDR back buffer
-	{
-		ThrowIfFailed(mHDRRendertarget->Init(
-				md3dDevice.Get(), 
-				mCommandList.Get(),
-				mClientWidth, 
-				mClientHeight
-				));
-		mHDRRendertarget->CreateSRV(md3dDevice.Get(), mCommandList.Get(), mSRVHeap.Get(), 2);
-		mHDRRendertarget->CreateRTV(md3dDevice.Get(), mCommandList.Get(), mRtvHeap.Get(), 2);
-	}
+	mHDRRendertarget->Init(md3dDevice.Get(), mCommandList.Get(), mClientWidth, mClientHeight);
+	int mHDRRendertargetindex = mRenderTargetPool->GetRenderTarget_mRtvHeapAndmSrvHeap_HeapIndex(mHDRRendertarget);
+	mHDRRendertarget->CreateSRV(md3dDevice.Get(), mCommandList.Get(), mRenderTargetPool->mSrvHeap.Get(), mHDRRendertargetindex);
+	mHDRRendertarget->CreateRTV(md3dDevice.Get(), mCommandList.Get(), mRenderTargetPool->mRtvHeap.Get(), mHDRRendertargetindex);
+
 	{
 		if(mDebugArrowRendertarget == nullptr)
 			mDebugArrowRendertarget = new RenderTarget(mBackBufferFormat, Color(0.8, 0.8, 1, 1));
@@ -502,8 +498,9 @@ void Renderer::OnResize()
 			512,
 			512
 		));
-		mDebugArrowRendertarget->CreateSRV(md3dDevice.Get(), mCommandList.Get(), mSRVHeap.Get(), 3);
-		mDebugArrowRendertarget->CreateRTV(md3dDevice.Get(), mCommandList.Get(), mRtvHeap.Get(), 3);
+		int mDebugArrowRendertargetindex = mRenderTargetPool->GetRenderTarget_mRtvHeapAndmSrvHeap_HeapIndex(mDebugArrowRendertarget);
+		mDebugArrowRendertarget->CreateSRV(md3dDevice.Get(), mCommandList.Get(), mRenderTargetPool->mSrvHeap.Get(), mDebugArrowRendertargetindex);
+		mDebugArrowRendertarget->CreateRTV(md3dDevice.Get(), mCommandList.Get(), mRenderTargetPool->mRtvHeap.Get(), mDebugArrowRendertargetindex);
 		if (mArrowPassMaterial == nullptr)
 			mArrowPassMaterial = new MaterialResource();
 
@@ -511,56 +508,14 @@ void Renderer::OnResize()
 		mArrowPassMaterial->InitMaterial(md3dDevice.Get(), mCommandList.Get(), { mDebugArrowRendertarget });
 	}
 
-	// Create the depth/stencil buffer and view.
-	D3D12_RESOURCE_DESC depthStencilDesc;
-	depthStencilDesc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
-	depthStencilDesc.Alignment = 0;
-	depthStencilDesc.Width = mClientWidth;
-	depthStencilDesc.Height = mClientHeight;
-	depthStencilDesc.DepthOrArraySize = 1;
-	depthStencilDesc.MipLevels = 1;
-
-	// Correction 11/12/2016: SSAO chapter requires an SRV to the depth buffer to read from 
-	// the depth buffer.  Therefore, because we need to create two views to the same resource:
-	//   1. SRV format: DXGI_FORMAT_R24_UNORM_X8_TYPELESS
-	//   2. DSV Format: DXGI_FORMAT_D24_UNORM_S8_UINT
-	// we need to create the depth buffer resource with a typeless format.  
-	depthStencilDesc.Format = DXGI_FORMAT_R24G8_TYPELESS;
-
-	depthStencilDesc.SampleDesc.Count = m4xMsaaState ? 4 : 1;
-	depthStencilDesc.SampleDesc.Quality = m4xMsaaState ? (m4xMsaaQuality - 1) : 0;
-	depthStencilDesc.Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN;
-	depthStencilDesc.Flags = D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL;
-
-	D3D12_CLEAR_VALUE optClear;
-	optClear.Format = mDepthStencilFormat;
-	optClear.DepthStencil.Depth = 1.0f;
-	optClear.DepthStencil.Stencil = 0;
-	ThrowIfFailed(md3dDevice->CreateCommittedResource(
-		&CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT),
-		D3D12_HEAP_FLAG_NONE,
-		&depthStencilDesc,
-		D3D12_RESOURCE_STATE_COMMON,
-		&optClear,
-		IID_PPV_ARGS(mDepthStencilBuffer.GetAddressOf())));
-
-	// Create descriptor to mip level 0 of entire resource using the format of the resource.
-	D3D12_DEPTH_STENCIL_VIEW_DESC dsvDesc;
-	dsvDesc.Flags = D3D12_DSV_FLAG_NONE;
-	dsvDesc.ViewDimension = D3D12_DSV_DIMENSION_TEXTURE2D;
-	dsvDesc.Format = mDepthStencilFormat;
-	dsvDesc.Texture2D.MipSlice = 0;
-	md3dDevice->CreateDepthStencilView(mDepthStencilBuffer.Get(), &dsvDesc, DepthStencilView());
-
-	// Transition the resource from its initial state to be used as a depth buffer.
-	mCommandList->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(mDepthStencilBuffer.Get(),
-		D3D12_RESOURCE_STATE_COMMON, D3D12_RESOURCE_STATE_DEPTH_WRITE));
-
+	//mDepthStencilRendertarget = new DepthMapRenderTarget();
+	mDepthStencilRendertarget->Init(md3dDevice.Get(), mCommandList.Get(), mClientWidth, mClientHeight);
+	mDepthStencilRendertarget->CreateDSV(md3dDevice.Get(), mCommandList.Get(), mRenderTargetPool->mDsvHeap.Get(), 0);//这里把depth view 放到了mDsvHeap的第0号位置
+	
 	// Execute the resize commands.
 	ThrowIfFailed(mCommandList->Close());
 	ID3D12CommandList* cmdsLists[] = { mCommandList.Get() };
 	mCommandQueue->ExecuteCommandLists(_countof(cmdsLists), cmdsLists);
-
 	// Wait until resize is complete.
 	FlushCommandQueue();
 
@@ -571,6 +526,7 @@ void Renderer::OnResize()
 	mScreenViewport.Height = static_cast<float>(mClientHeight);
 	mScreenViewport.MinDepth = 0.0f;
 	mScreenViewport.MaxDepth = 1.0f;
+
 	mScissorRect = { 0, 0, mClientWidth, mClientHeight };
 
 	mCamera.SetLens(0.4f * MathHelper::Pi, AspectRatio(), 0.01f, 1000.0f);
@@ -646,8 +602,13 @@ void Renderer::Draw(const GameTimer& gt)
 	ThrowIfFailed(cmdListAlloc->Reset());
 	ThrowIfFailed(mCommandList->Reset(cmdListAlloc.Get(), nullptr));
 
-	ID3D12DescriptorHeap* descriptorHeaps[] = { mSRVHeap.Get() };
+	ID3D12DescriptorHeap* descriptorHeaps[] = { mRenderTargetPool->mSrvHeap.Get() };
 	mCommandList->SetDescriptorHeaps(_countof(descriptorHeaps), descriptorHeaps);
+
+	RenderTarget* CurrentBackTarget = mBackBufferRendertarget[mCurrBackBuffer];
+	
+//Draw BasePass
+#if DrawBasePass
 	
 	UINT passCBByteSize = d3dUtil::CalcConstantBufferByteSize(sizeof(PassConstants));
 	auto passCB = mCurrFrameResource->PassCB->Resource();
@@ -655,12 +616,10 @@ void Renderer::Draw(const GameTimer& gt)
 	//Draw shadow map--------------------------------------------
 	mShadowMapPass->Draw(mCommandList.Get(), mDirectCmdListAlloc.Get(), mCurrFrameResource, mRitemLayer[(int)EPassType::Opaque]);
 	//End Draw shadow map--------------------------------------------
-
+	
 	//Draw standard pass---------------------------------------------
 	mCommandList->RSSetViewports(1, &mScreenViewport);
 	mCommandList->RSSetScissorRects(1, &mScissorRect);
-
-	RenderTarget* CurrentBackTarget = mBackBufferRendertarget[mCurrBackBuffer];
 
 	// Indicate a state transition on the resource usage.
 	mHDRRendertarget->BeginRender(mCommandList.Get());
@@ -669,7 +628,7 @@ void Renderer::Draw(const GameTimer& gt)
 	mCommandList->OMSetRenderTargets(1, &mHDRRendertarget->GetRTVDescriptorHandle(), true, &DepthStencilView());
 	// Clear the back buffer and depth buffer.
 	mCommandList->ClearRenderTargetView(mHDRRendertarget->GetRTVDescriptorHandle(), mHDRRendertarget->GetClearData(), 0, nullptr);
-	mCommandList->ClearDepthStencilView(DepthStencilView(), D3D12_CLEAR_FLAG_DEPTH | D3D12_CLEAR_FLAG_STENCIL, 1.0f, 0, 0, nullptr);
+	mCommandList->ClearDepthStencilView(mDepthStencilRendertarget->GetDSVDescriptorHandle(), D3D12_CLEAR_FLAG_DEPTH | D3D12_CLEAR_FLAG_STENCIL, 1.0f, 0, 0, nullptr);
 
 	//渲染BasePass
 	D3D12_GPU_VIRTUAL_ADDRESS standardPassConstantViewAdress = passCB->GetGPUVirtualAddress();
@@ -680,11 +639,10 @@ void Renderer::Draw(const GameTimer& gt)
 	
 	// Indicate a state transition on the resource usage.
 	mHDRRendertarget->EndRender(mCommandList.Get());
-
 	//End Draw standard pass---------------------------------------------
-
+#endif
 	//ToneMapping
-	ID3D12DescriptorHeap* descriptorHeaps2[] = { mSRVHeap.Get() };
+	ID3D12DescriptorHeap* descriptorHeaps2[] = { mRenderTargetPool->mSrvHeap.Get() };
 	mCommandList->SetDescriptorHeaps(_countof(descriptorHeaps2), descriptorHeaps2);
 	oneFramePass->Draw(
 		mCommandList.Get(),
@@ -694,6 +652,7 @@ void Renderer::Draw(const GameTimer& gt)
 		mHDRRendertarget,
 		CurrentBackTarget
 	);
+
 
 	//Just draw once
 	if (bDrawIBLToggle == true)
@@ -710,15 +669,20 @@ void Renderer::Draw(const GameTimer& gt)
 		mCommandList.Get(),
 		mDirectCmdListAlloc.Get(),
 		CurrentBackTarget,
-		mDebugPassMaterial
+		mDebugPassMaterial,
+		1024,
+		1024
 	);
-
+#endif
+#if 1
 	mDebugPass->SetWindowScaleAndCenter(Vector2(0.25, 0.25f), Vector2(mClientWidth - 600, mClientHeight - 300));
 	mDebugPass->DrawMaterialToRendertarget(
 		mCommandList.Get(),
 		mDirectCmdListAlloc.Get(),
 		CurrentBackTarget,
-		mDebugIBLPassMaterial
+		mDebugIBLPassMaterial,
+		mIBLBRDFTarget->GetWidth(),
+		mIBLBRDFTarget->GetHeight()
 	);
 
 #endif
@@ -738,6 +702,8 @@ void Renderer::Draw(const GameTimer& gt)
 		mDirectCmdListAlloc.Get(),
 		CurrentBackTarget,
 		mArrowPassMaterial,
+		mDebugArrowRendertarget->GetWidth(),
+		mDebugArrowRendertarget->GetHeight(),
 		true
 	);
 #endif
@@ -794,13 +760,14 @@ void Renderer::Update(const GameTimer& gt)
 		WaitForSingleObject(eventHandle, INFINITE);
 		CloseHandle(eventHandle);
 	}
-
+#if DrawBasePass
 	UpdateObjectCBs(gt);
 	UpdateMainPassCB(gt);
 	mShadowMapPass->UpdateShadowPassCB(gt, mClientWidth, mClientHeight, mCurrFrameResource);
 	mdebugArrowPass->Update(gt, mCamera);
 	mSkeletonMesh->UpdateSkinnedCBs(gt, mCurrFrameResource);
 	mSimpleLight->UpdateLightUniform();
+#endif
 }
 
 void Renderer::UpdateObjectCBs(const GameTimer& gt)
@@ -909,22 +876,6 @@ void Renderer::LoadTextures()
 	std::string normTexPath = gSystemPath + "\\Content\\Textures\\tile_nmap.dds";
 	normTex->Init(md3dDevice.Get(), mCommandList.Get(), normTexPath.c_str());
 
-	//Shadow map
-	{
-		mShadowMap->Init(md3dDevice.Get(), mCommandList.Get(), 4096, 4096);
-		mShadowMap->CreateDSV(md3dDevice.Get(), mCommandList.Get(), mDsvHeap.Get(), 1);
-	}
-	{
-		ThrowIfFailed(mIBLBRDFTarget->Init(
-			md3dDevice.Get(),
-			mCommandList.Get(),
-			1024,
-			1024
-		));
-		mIBLBRDFTarget->CreateSRV(md3dDevice.Get(), mCommandList.Get(), mSRVHeap.Get(), 4);
-		mIBLBRDFTarget->CreateRTV(md3dDevice.Get(), mCommandList.Get(), mRtvHeap.Get(), 4);
-	}
-
 	PipelineInfoForMaterialBuild Info = {mHDRRendertarget->GetFormat(), mDepthStencilFormat, m4xMsaaState ? 4 : 1 , m4xMsaaState ? (m4xMsaaQuality - 1) : 0 };
 
 	MaterialUniformBuffer parm1;
@@ -971,13 +922,6 @@ void Renderer::LoadTextures()
 		parm4,
 		true
 	);
-
-	mDebugPassMaterial = new MaterialResource();
-	mDebugPassMaterial->InitMaterial(md3dDevice.Get(), mCommandList.Get(), { mShadowMap });
-
-	mDebugIBLPassMaterial = new MaterialResource();
-	mDebugIBLPassMaterial->InitMaterial(md3dDevice.Get(), mCommandList.Get(), { mIBLBRDFTarget });
-	//mDebugIBLPassMaterial->InitMaterial(md3dDevice.Get(), mCommandList.Get(), { bricks.get() });
 
 	mMaterials.push_back(std::move(Mat1));
 	mMaterials.push_back(std::move(Mat2));
@@ -1057,6 +1001,7 @@ void Renderer::BuildFrameResources()
 {
 	for (int i = 0; i < gNumFrameResources; ++i)
 	{
+#if DrawBasePass
 		mFrameResources.push_back(std::make_unique<FrameResource>
 		(
 			md3dDevice.Get(),
@@ -1064,6 +1009,15 @@ void Renderer::BuildFrameResources()
 			(UINT)mAllRitems.size(), 
 			1
 		));
+#else
+		mFrameResources.push_back(std::make_unique<FrameResource>
+			(
+				md3dDevice.Get(),
+				0,
+				0,
+				0
+				));
+#endif
 	}
 }
 
