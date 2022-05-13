@@ -133,8 +133,9 @@ protected:
 	int mCurrFrameResourceIndex = 0;
 };
 
-
-
+/*
+* Draw Some Texture or bake something and then show it on screen directly
+*/
 class SimpleRenderer : public BaseRenderer
 {
 public:
@@ -177,7 +178,9 @@ public:
 	float mRadius = 15.0f;
 };
 
-
+/*
+* DX12的教程完整实现的一个Renderer
+*/
 class Renderer : public BaseRenderer
 {
 public:

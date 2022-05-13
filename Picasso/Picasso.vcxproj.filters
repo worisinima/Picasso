@@ -40,6 +40,9 @@
     <Filter Include="Source\Renderer\ScreenPass">
       <UniqueIdentifier>{fa05ab8e-8bcb-4b05-8ffc-2ce9106926c6}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source\CPURender">
+      <UniqueIdentifier>{deb1139b-8281-45a1-80b7-3f072c9e4fb1}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="Shaders\color.hlsl">
@@ -257,6 +260,9 @@
     <ClInclude Include="Source\Renderer\ScreenPass\ScreenPass.h">
       <Filter>Source\Renderer\ScreenPass</Filter>
     </ClInclude>
+    <ClInclude Include="Source\CPURender\CPURender.h">
+      <Filter>Source\CPURender</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Source\Common\Camera.cpp">
@@ -375,6 +381,9 @@
     </ClCompile>
     <ClCompile Include="Source\Renderer\ScreenPass\ScreenPass.cpp">
       <Filter>Source\Renderer\ScreenPass</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\CPURender\CPURender.cpp">
+      <Filter>Source\CPURender</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

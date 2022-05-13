@@ -2,6 +2,7 @@
 #include "D3DApp.h"
 #include "Core/Core.h"
 #include "SkinMesh/SkeletonMesh.h"
+#include "CPURender/CPURender.h"
 
 void InitAllGlobalData(D3DApp& theApp)
 {
@@ -14,7 +15,7 @@ void InitAllGlobalData(D3DApp& theApp)
 }
 
 //int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE prevInstance,
-//	PSTR cmdLine, int showCmd)
+//PSTR cmdLine, int showCmd)
 int main()
 {
 	// Enable run-time memory check for debug builds.
@@ -22,6 +23,7 @@ int main()
 	_CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
 #endif
 
+#if 0
 	try
 	{
 		D3DApp theApp(nullptr);
@@ -38,4 +40,10 @@ int main()
 		MessageBox(nullptr, e.ToString().c_str(), L"HR Failed", MB_OK);
 		return 0;
 	}
+#else
+	FileHelper::GetProjectPath(gSystemPath);
+	CPURenderer RCpu;
+	RCpu.RenderImage();
+
+#endif
 }

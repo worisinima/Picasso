@@ -313,18 +313,6 @@ void BaseRenderer::BuildFrameResources()
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
 Renderer::Renderer(const int& clientWidth, const int& clientHeight)
 	: BaseRenderer(clientWidth, clientHeight)
 {
