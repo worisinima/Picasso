@@ -72,48 +72,61 @@ float distance(const FVectorInt2D& A, const FVectorInt2D& B)
 
 void CPURenderer::RenderImage()
 {
+	//Begin load texture
 	std::string redTexturePath = gSystemPath + "\\Content\\Textures\\SDFAlphaSource.bmp";
-	vector<FColor>ReadTextureBulkData;
+	struct PixleData
+	{
+		FColor color;
+		bool bIsInner;
+		FVectorInt2D uv;
+	};
+	vector<PixleData>ReadTextureBulkData;
 
 	CImg<uint8_t> SrcTexture(redTexturePath.c_str());
 	int SrcTextureWidth = SrcTexture._width;
 	int SrcTextureHeight = SrcTexture._height;
 	cimg_forXY(SrcTexture, x, y)
 	{
-		FColor NewColor;
-		NewColor.R = SrcTexture(x, y, 0);
-		NewColor.G = SrcTexture(x, y, 1);
-		NewColor.B = SrcTexture(x, y, 2);
-		ReadTextureBulkData.push_back(std::move(NewColor));
-	}
-
-	for (int x = 0; x < SrcTextureWidth; x++)
-	{
-		for (int y = 0; y < SrcTextureHeight; y++)
+		PixleData NewData;
+		NewData.color.R = SrcTexture(x, y, 0);
+		NewData.color.G = SrcTexture(x, y, 1);
+		NewData.color.B = SrcTexture(x, y, 2);
+		NewData.uv = FVectorInt2D(x, y);
+		if (NewData.color.R > 220 && NewData.color.G > 220 && NewData.color.B > 220)
 		{
-			FVectorInt2D Loc = FVectorInt2D(x, y);
-			FColor CurColor = ReadTextureBulkData[y * SrcTextureHeight + x];
-			if (IsWhite(CurColor))
-			{
-				
-			}
-			else
-			{
+			NewData.bIsInner = true;
+		}
+		else
+		{
+			NewData.bIsInner = false;
+		}
+		ReadTextureBulkData.push_back(std::move(NewData));
+	}
+	//End load texture
 
-			}
-
+	float MaxRadius = 30;
+	for (int i = 0; i < ReadTextureBulkData.size(); i++)
+	{
+		PixleData& CurColor = ReadTextureBulkData[i];
+		if (CurColor.bIsInner)
+		{
+			CurColor.color = FColor(255, 0, 0);
+		}
+		else
+		{
+			CurColor.color = FColor(0, 0, 0);
 		}
 	}
 
+	//Save the texture
 	CImg<uint8_t> DestTexture(SrcTextureWidth, SrcTextureHeight, 1, 3);
 	cimg_forXY(DestTexture, x, y)
 	{
 		FColor NewColor;
-		DestTexture(x, y, 0) = ReadTextureBulkData[y * SrcTextureHeight + x].R;
-		DestTexture(x, y, 1) = ReadTextureBulkData[y * SrcTextureHeight + x].G;
-		DestTexture(x, y, 2) = ReadTextureBulkData[y * SrcTextureHeight + x].B;
+		DestTexture(x, y, 0) = ReadTextureBulkData[y * SrcTextureHeight + x].color.R;
+		DestTexture(x, y, 1) = ReadTextureBulkData[y * SrcTextureHeight + x].color.G;
+		DestTexture(x, y, 2) = ReadTextureBulkData[y * SrcTextureHeight + x].color.B;
 	}
-
 	const string& Path = FileHelper::GetDesktopPath();
 	DestTexture.save((Path + "\\Text.bmp").c_str());
 }
