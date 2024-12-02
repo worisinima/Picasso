@@ -48,7 +48,8 @@ public:
 private:
 
 	//Renderer of this app
-	SimpleRenderer* GraphicRender;
+	Renderer* GraphicRender;
+	//SimpleRenderer* GraphicRender;
 
 	GameTimer mTimer;
 	WNDCLASSEX wc;

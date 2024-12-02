@@ -39,7 +39,7 @@ D3DApp::D3DApp(HINSTANCE hInstance)
 	assert(mApp == nullptr);
 		mApp = this;
 
-	GraphicRender = new SimpleRenderer(mClientWidth, mClientHeight);
+	GraphicRender = new Renderer(mClientWidth, mClientHeight);
 }
 
 D3DApp::~D3DApp()
